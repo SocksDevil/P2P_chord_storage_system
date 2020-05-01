@@ -4,20 +4,20 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Chord {
-    private ArrayList<Connection> fingerTable;
+    private ArrayList<SocketAddress> fingerTable;
     
     public Chord(){
         fingerTable = new ArrayList<>();
     }
 
-    public void addConnection(Connection connection){
+    public void addConnection(SocketAddress connection){
         this.fingerTable.add(connection);
     }
 
-    public Connection getDest(Connection connection){
+    public SocketAddress getDest(SocketAddress connection){
         if(fingerTable.size() == 1)
             return null;
-        Connection ret = null;
+        SocketAddress ret = null;
         // TODO: ver ocupação tbm. depois terá de ser sequencial, é só pelos loles para já
         do{
             ret = fingerTable.get(new Random().nextInt(fingerTable.size()));

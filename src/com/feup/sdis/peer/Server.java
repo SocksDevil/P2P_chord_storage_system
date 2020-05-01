@@ -23,12 +23,6 @@ public class Server {
             return;
         }
 
-
-        Constants.peerRootFolder = Constants.peerParentFolder + "server/";
-        Constants.backupFolder = Constants.peerRootFolder + "backups/";
-        Constants.restoredFolder = Constants.peerRootFolder + "restored/";
-        Server.createPeerFolders();
-
         MessageListener receiver = new MessageListener(port);
         receiver.receive();
     }

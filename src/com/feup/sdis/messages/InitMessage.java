@@ -1,13 +1,13 @@
 package com.feup.sdis.messages;
 
-import com.feup.sdis.chord.Connection;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.peer.Server;
 
 public class InitMessage extends Message {
 
-    private Connection connection;
+    private SocketAddress connection;
 
-    public InitMessage(Connection connection) {
+    public InitMessage(SocketAddress connection) {
         this.connection = connection;
     }
 
@@ -24,7 +24,7 @@ public class InitMessage extends Message {
     }
 
     @Override
-    public Connection getConnection() {
+    public SocketAddress getConnection() {
         // TODO Auto-generated method stub
         return this.connection;
     }

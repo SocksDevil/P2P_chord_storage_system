@@ -1,6 +1,6 @@
 package com.feup.sdis.actions;
 
-import com.feup.sdis.chord.Connection;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Message;
 import com.feup.sdis.peer.Constants;
 
@@ -12,7 +12,7 @@ import java.net.Socket;
 
 public abstract class Action {
     
-    public Message sendMessage(Message message, Connection destination) {
+    public Message sendMessage(Message message, SocketAddress destination) {
         try {
             final Socket socket = new Socket(destination.getIp(), destination.getPort());
             final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());

@@ -1,26 +1,28 @@
 package com.feup.sdis.messages;
 
-import com.feup.sdis.chord.Connection;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.peer.Server;
 
 public class LookupMessage extends Message {
 
-    private String file;
+    private String chunkID;
     private int repDegree;
-    private Connection connection;
+    private SocketAddress addressInfo;
 
-    public LookupMessage(String[] args, Connection connection){
+    // chunkID -> hash(fileName#chunkNo#repID)
+    public LookupMessage(String chunkID, int repDegree, SocketAddress addressInfo){
+
         // TODO: if args != X throw IllegalArgumentException/MessageError...
-        this.file = args[1];
-        this.repDegree = Integer.parseInt(args[2]);
-        this.connection = connection;
+        this.chunkID = chunkID;
+        this.repDegree = repDegree;
+        this.addressInfo = addressInfo;
     }
 
     @Override
     public Message handle() {
-        this.connection = Server.chord.getDest(this.connection);
+        this.addressInfo = Server.chord.getDest(this.addressInfo);
         
-        if(this.connection == null){
+        if(this.addressInfo == null){
             System.out.println("TODO: An error occured on LookupMessage.handle");
             return null;
         }
@@ -29,15 +31,15 @@ public class LookupMessage extends Message {
     }
 
 	@Override
-	public Connection getConnection() {
+	public SocketAddress getConnection() {
 		
-		return this.connection;
+		return this.addressInfo;
 	}
 
     @Override
     public String toString(){
 
-        return "LOOKUP: " + file + "-" + this.connection; 
+        return "LOOKUP: " + this.chunkID + "-" + this.addressInfo; 
     }
     
 }

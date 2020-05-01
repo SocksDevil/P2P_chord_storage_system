@@ -2,11 +2,11 @@ package com.feup.sdis.chord;
 
 import java.io.Serializable;
 
-public class Connection implements Serializable {
+public class SocketAddress implements Serializable {
     private String ip;
     private int port;
 
-    public Connection(String ip, int port) {
+    public SocketAddress(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
@@ -29,7 +29,7 @@ public class Connection implements Serializable {
         if (this == o) return true;
         if (o == null) return false; 
         if (getClass() != o.getClass()) return false;
-        Connection c = (Connection) o;    
+        SocketAddress c = (SocketAddress) o;    
         return this.ip.equals(c.getIp()) && this.port == c.getPort();
     }
 }
