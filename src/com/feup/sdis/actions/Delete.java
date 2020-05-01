@@ -13,7 +13,7 @@ public class Delete extends Action {
     @Override
     public String process() {
         //TODO: Implement delete
-        this.sendMessage(message);
+        this.sendMessage(message, null);
         return "Deleted file";
     }
 }

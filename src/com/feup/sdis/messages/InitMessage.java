@@ -12,14 +12,21 @@ public class InitMessage extends Message {
     }
 
     @Override
-    public void handle() {
+    public Message handle() {
         Server.chord.addConnection(connection);
-        System.out.println("FingerTable:\n" +  Server.chord.toString());
+        System.out.println( "FingerTable:\n" +  Server.chord.toString());
+        return null;
     }
 
     @Override
     public String toString(){
         return "INIT " + this.connection;
+    }
+
+    @Override
+    public Connection getConnection() {
+        // TODO Auto-generated method stub
+        return this.connection;
     }
 
 

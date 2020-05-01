@@ -5,6 +5,7 @@ import com.feup.sdis.actions.Dispatcher;
 import com.feup.sdis.actions.Init;
 import com.feup.sdis.chord.Connection;
 import com.feup.sdis.messages.InitMessage;
+import com.feup.sdis.model.Store;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -47,11 +48,13 @@ public class Peer {
 
         Constants.SENDER_ID = peerID;
         Constants.SERVER_IP = ip;
-        Constants.SERVER_PORT = port;
+
+        // TODO: SERVER PORT IS HARDCODED
+        Constants.SERVER_PORT = 25565;
 
         // TODO: com argumentos
         try {
-            connection = new Connection(InetAddress.getLocalHost().getHostAddress(), Integer.parseInt(Constants.SENDER_ID));
+            connection = new Connection(InetAddress.getLocalHost().getHostAddress(), port);
         } catch (NumberFormatException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -79,5 +82,10 @@ public class Peer {
         } catch (RemoteException e) {
             e.printStackTrace();
         }        
+        
+        //TODO: port number está hardcoded
+        MessageListener messageListener = new MessageListener(port);
+        messageListener.receive();
+
     }
 }

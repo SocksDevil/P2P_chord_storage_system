@@ -14,7 +14,7 @@ public class Reclaim extends Action {
     @Override
     public String process() {
         //TODO: Implement reclaim
-        this.sendMessage(message);
+        this.sendMessage(message, null);
         return "Reclaimed space";
     }
 }

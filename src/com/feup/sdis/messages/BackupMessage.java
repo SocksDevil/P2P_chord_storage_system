@@ -8,16 +8,24 @@ public class BackupMessage extends Message {
     private int repDegree;
     private Connection connection;
 
-    public BackupMessage(String[] args, Connection connection){
-        // TODO: if args != X throw IllegalArgumentException/MessageError...
-        this.file = args[1];
-        this.repDegree = Integer.parseInt(args[2]);
+    public BackupMessage(String file, Connection connection){
+
+        this.file =file;
         this.connection = connection;
+        // this.repDegree = Integer.parseInt(args[2]);
+
     }
 
     @Override
-    public void handle() {
-        Server.chord.get
+    public Message handle() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Connection getConnection() {
+        // TODO Auto-generated method stub
+        return this.connection;
     }
 
     

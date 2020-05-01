@@ -13,7 +13,7 @@ public class Restore extends Action {
     @Override
     public String process() {
         //TODO: Implement restore
-        this.sendMessage(message);
+        this.sendMessage(message, null);
         return "Restored file";
     }
 }

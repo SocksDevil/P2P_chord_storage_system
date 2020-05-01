@@ -6,7 +6,6 @@ import java.util.Set;
 
 public class ReplicationCounter extends SerializableHashMap<Set<String>>{
 
-
     ReplicationCounter(String filename) {
         super(filename);
     }

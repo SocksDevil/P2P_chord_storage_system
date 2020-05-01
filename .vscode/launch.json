@@ -9,14 +9,14 @@
             "name": "Peer 1",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25565 1 mc"
+            "args": "127.0.0.1:25563 1 mc"
         },
         {
             "type": "java",
             "name": "Peer 2",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25565 2 meta"
+            "args": "127.0.0.1:25564 2 meta"
         },
         {
             "type": "java",
