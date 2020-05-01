@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Peer 1",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25565 1 mc"
+        },
+        {
+            "type": "java",
+            "name": "Peer 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25565 2 meta"
+        },
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Server",
+            "args": "25565"
+        },
+        {
+            "type": "java",
+            "name": "TestApp",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mc BACKUP ficheiro.fixe 2"
+        }
+    ]
+}

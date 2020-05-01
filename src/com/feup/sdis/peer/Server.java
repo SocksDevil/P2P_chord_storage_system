@@ -6,8 +6,15 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.feup.sdis.chord.Chord;
+import com.feup.sdis.messages.MessageHandler;
+
+
 public class Server {
     private static final ExecutorService pool = Executors.newCachedThreadPool();
+
+    // TODO: depois ver isto
+    public static final Chord chord = new Chord();
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -30,7 +37,7 @@ public class Server {
             System.out.println("Failed to initialize server on port " + port);
             return;
         }
-        Constants.peerRootFolder = Constants.peerParentFolder + "server" + "/";
+        Constants.peerRootFolder = Constants.peerParentFolder + "server/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";
         Server.createPeerFolders();
@@ -42,21 +49,29 @@ public class Server {
                 pool.execute(() -> {
                     try {
                         final PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                        final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        String message = in.readLine();
+                        final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                        Object message = in.readObject();
                         if (message == null) {
                             System.out.println("Message not received properly");
                         } else {
-                            System.out.println(message);
-                            out.println(message);
+                            MessageHandler messageHandler = new MessageHandler(message);
+                            pool.execute(messageHandler);
+                            // System.out.println(message);
+                            // TODO: ---
+                            out.println("Opah ya correu bem");
                         }
 
                         socket.shutdownOutput();
-                        while (in.readLine() != null) {}
-                        socket.shutdownInput();
+                        // TODO: why is this here??
+                        // while (in.readObject() != null) {}
+                        // socket.shutdownInput();
 
                         socket.close();
                     } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 });

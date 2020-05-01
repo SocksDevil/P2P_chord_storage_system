@@ -1,9 +1,13 @@
 package com.feup.sdis.peer;
 
-
 import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.actions.Dispatcher;
+import com.feup.sdis.actions.Init;
+import com.feup.sdis.chord.Connection;
+import com.feup.sdis.messages.InitMessage;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -11,6 +15,9 @@ import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Peer {
+
+    // TODO: ver isto meu puto
+    public static Connection connection;
 
     public static void main(String[] args) {
 
@@ -42,6 +49,20 @@ public class Peer {
         Constants.SERVER_IP = ip;
         Constants.SERVER_PORT = port;
 
+        // TODO: com argumentos
+        try {
+            connection = new Connection(InetAddress.getLocalHost().getHostAddress(), Integer.parseInt(Constants.SENDER_ID));
+        } catch (NumberFormatException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (UnknownHostException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+
+        // TODO: Initial message - this will change from Server to chord - Por num thread
+        new Init(new InitMessage(connection)).process();
+
         BSDispatcher dispatcher = new BSDispatcher();
         try {
             final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
@@ -57,6 +78,6 @@ public class Peer {
 
         } catch (RemoteException e) {
             e.printStackTrace();
-        }
+        }        
     }
 }

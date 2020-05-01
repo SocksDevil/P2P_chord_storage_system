@@ -1,20 +1,21 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.messages.Message;
 import com.feup.sdis.peer.Constants;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public abstract class Action {
-    public void sendMessage(String message) {
+    public void sendMessage(Message message) {
         try {
             final Socket socket = new Socket(Constants.SERVER_IP, Constants.SERVER_PORT);
-            final PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out.println(message);
+            out.writeObject(message);
             socket.shutdownOutput();
             String receivedMessage = in.readLine();
             if(receivedMessage == null){
