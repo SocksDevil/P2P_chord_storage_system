@@ -14,6 +14,8 @@ public class StoredChunkInfo implements Serializable {
     final int chunkNo;
     final int chunkSize;
 
+
+
     public StoredChunkInfo(String fileID, int desiredReplicationDegree, int chunkNo, int chunkSize) {
         this.fileID = fileID;
         this.desiredReplicationDegree = desiredReplicationDegree;

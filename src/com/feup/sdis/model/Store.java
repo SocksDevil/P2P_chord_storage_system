@@ -10,9 +10,12 @@ import java.util.Set;
 public class Store {
     private static Store storeInstance;
     final private ReplicationCounter replCount = new ReplicationCounter(Constants.peerRootFolder + "repl.ser");
-    final private SerializableHashMap<BackupFileInfo> backedUpFiles = new SerializableHashMap<>(Constants.peerRootFolder + "backed.ser");
-    final private SerializableHashMap<StoredChunkInfo> storedFiles = new SerializableHashMap<>(Constants.peerRootFolder + "stored.ser");
+    final private SerializableHashMap<BackupFileInfo> backedUpFiles = new SerializableHashMap<>(
+            Constants.peerRootFolder + "backed.ser");
+    final private SerializableHashMap<StoredChunkInfo> storedFiles = new SerializableHashMap<>(
+            Constants.peerRootFolder + "stored.ser");
     final private Set<String> chunksSent = Collections.synchronizedSet(new HashSet<>());
+    private int usedSpace = 0;
 
     private Store() {
     }
@@ -47,4 +50,15 @@ public class Store {
     public Set<String> getChunksSent() {
         return chunksSent;
     }
+
+    public synchronized boolean incrementSpace(int length) {
+
+        if(this.usedSpace + length <= Constants.MAX_OCCUPIED_DISK_SPACE_MB){
+            this.usedSpace += length;
+            return true;
+        }
+
+        return false;
+    }
+
 }

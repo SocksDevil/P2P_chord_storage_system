@@ -21,7 +21,7 @@ public class Peer {
 
     public static void main(String[] args) {
 
-        if (args.length != 3) {
+        if (args.length != 4) {
             System.out.println("Invalid number of arguments");
             return;
         }
@@ -47,6 +47,7 @@ public class Peer {
 
         Constants.SENDER_ID = peerID;
         Constants.SERVER_IP = ip;
+        Constants.MAX_OCCUPIED_DISK_SPACE_MB = Integer.parseInt(args[3]) * Constants.MEGABYTE;
         Constants.peerRootFolder = Constants.peerParentFolder + "peer-" + peerID + "/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";

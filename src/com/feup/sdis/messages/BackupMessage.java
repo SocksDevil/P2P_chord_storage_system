@@ -31,14 +31,18 @@ public class BackupMessage extends Message {
     @Override
     public Message handle() {
 
-        if(Store.instance().getUsedDiskSpace() + this.chunkData.length > Constants.MAX_OCCUPIED_DISK_SPACE_MB){
-            System.out.println("No space. TODO REDIRECT.");
+        
+        System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
+        if(!Store.instance().incrementSpace(this.chunkData.length)){
+            System.out.println("No space. TODO REDIRECT. " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
             this.status = 400; // TODO: change the status, only here for debug
             return this;
         }
 
+        System.out.println("Dps do if");
         StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo, chunkData.length);
         Store.instance().getStoredFiles().put(fileID + "#" + chunkNo, newChunk);
+        System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
         
         try {
             newChunk.storeFile(chunkData);

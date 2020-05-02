@@ -46,11 +46,12 @@ public class Backup extends Action {
             return e.getMessage();
         }
 
-        for (int i = 0; i < this.file.getNChunks(); i++) {
+        for (int i = 0; i < this.repDegree; i++) {
+            for (int j = 0; j < this.file.getNChunks(); j++) {
 
-            BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), i, repDegree, this.chunks.get(i)));
+                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i, this.chunks.get(j)));
+            }
         }
-
         return "Backed up file";
     }
 
