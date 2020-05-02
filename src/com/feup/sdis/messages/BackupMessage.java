@@ -23,6 +23,7 @@ public class BackupMessage extends Message {
         this.connection = connection;
         this.desiredRepDegree = desiredRepDegree;
         this.chunkData = data;
+        this.status = 0;
         // this.repDegree = Integer.parseInt(args[2]);
 
     }
@@ -62,7 +63,7 @@ public class BackupMessage extends Message {
     @Override
     public String toString(){
 
-        return "BACKUP: " + fileID + "#" + chunkNo; 
+        return "BACKUP: " + fileID + "#" + chunkNo + " - Status: " + this.status;  
     }
     
 }

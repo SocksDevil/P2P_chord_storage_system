@@ -5,14 +5,16 @@ import com.feup.sdis.peer.Server;
 
 public class LookupMessage extends Message {
 
-    private String chunkID;
+    private String fileID;
+    private int chunkID;
     private int repDegree;
     private SocketAddress addressInfo;
 
     // chunkID -> hash(fileName#chunkNo#repID)
-    public LookupMessage(String chunkID, int repDegree, SocketAddress addressInfo){
+    public LookupMessage(String fileID, int chunkID, int repDegree, SocketAddress addressInfo){
 
         // TODO: if args != X throw IllegalArgumentException/MessageError...
+        this.fileID = fileID;
         this.chunkID = chunkID;
         this.repDegree = repDegree;
         this.addressInfo = addressInfo;

@@ -30,7 +30,7 @@
             "name": "TestApp",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mc BACKUP ficheiro.fixe 2"
+            "args": "127.0.0.1 mc BACKUP clean_code.pdf 2"
         }
     ]
 }

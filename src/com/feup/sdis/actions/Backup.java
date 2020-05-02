@@ -8,7 +8,6 @@ import com.feup.sdis.model.BackupFileInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
-import static com.feup.sdis.peer.Constants.BLOCK_SIZE;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,23 +39,31 @@ public class Backup extends Action {
     public String process() {
 
         try {
-            BackupFileInfo newFile = this.readFile();
-            Store.instance().getBackedUpFiles().put(newFile.getfileID(), newFile);
+            this.file = this.readFile();
+            Store.instance().getBackedUpFiles().put(this.file.getfileID(), this.file);
 
         } catch (InvalidAttributeValueException | IOException e) {
             return e.getMessage();
         }
 
-        // -- TODO: This will change because of Chord
-        LookupMessage lookupRequest = new LookupMessage(this.file.getfileID() + '#' + 0, this.repDegree,
-                Peer.addressInfo);
-        Message lookupMessageAnswer = this.sendMessage(lookupRequest,
-                new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
-        // --
+        for (int i = 0; i < this.file.getNChunks(); i++) {
 
-        // TODO: execute for each chunk
-        BackupMessage backupRequest = new BackupMessage(this.file.getfileID(), 0, this.repDegree, this.chunks.get(0),lookupMessageAnswer.getConnection());
-        Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            final int chunkNo = i;
+            Runnable task = () -> {
+                // -- TODO: This will change because of Chord
+                LookupMessage lookupRequest = new LookupMessage(this.file.getfileID(), chunkNo, this.repDegree,
+                        Peer.addressInfo);
+                Message lookupMessageAnswer = this.sendMessage(lookupRequest,
+                        new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
+                // --
+                BackupMessage backupRequest = new BackupMessage(this.file.getfileID(), chunkNo, this.repDegree,
+                        this.chunks.get(chunkNo), lookupMessageAnswer.getConnection());
+                Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            };
+
+            BSDispatcher.servicePool.execute(task);
+
+        }
 
         return "Backed up file";
     }
@@ -76,10 +83,10 @@ public class Backup extends Action {
 
         // Get file info
         Path path = Paths.get(filepath);
-        
+
         // Get file owner
         String ownerName = "default";
-        
+
         try {
             FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
             UserPrincipal owner = ownerAttributeView.getOwner();
@@ -89,29 +96,29 @@ public class Backup extends Action {
             e1.printStackTrace();
         }
 
-        // Generate UUID for file: filename + lastmodified + ownername TODO: change this, maybe include file hash
+        // Generate UUID for file: filename + lastmodified + ownername TODO: change
+        // this, maybe include file hash
         String metaFileName = file.getName() + String.valueOf(file.lastModified()) + ownerName;
         String fileID = UUID.nameUUIDFromBytes(metaFileName.getBytes()).toString();
-        
 
         // Split chunks
         int nChunks = this.splitChunks(file);
-        
-        return new BackupFileInfo(fileID, file.getName() , filepath, nChunks, repDegree);
+
+        return new BackupFileInfo(fileID, file.getName(), filepath, nChunks, repDegree);
     }
 
     public int splitChunks(File file) throws IOException {
-        
+
         byte[] fileData = Files.readAllBytes(file.toPath());
-        int nChunks = (int) Math.ceil(file.length() / Constants.BLOCK_SIZE);
+        int nChunks = (int) Math.ceil(((double) file.length()) / Constants.BLOCK_SIZE);
 
         for (int i = 0; i < nChunks; i++) {
             byte[] chunk;
 
             if (i == nChunks - 1)
-                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE , fileData.length);
+                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE, fileData.length);
             else
-                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE , (i + 1) * Constants.BLOCK_SIZE );
+                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE, (i + 1) * Constants.BLOCK_SIZE);
 
             this.chunks.add(chunk);
         }
