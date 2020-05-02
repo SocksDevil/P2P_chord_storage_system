@@ -12,4 +12,5 @@ public class Constants {
     public static String backupFolder;
     public static String restoredFolder;
     public static final String peerParentFolder = "peers/";
+    public static final String idSeparation = "#";
 }

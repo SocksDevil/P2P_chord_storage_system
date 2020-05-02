@@ -9,14 +9,14 @@
             "name": "Peer 1",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25563 1 mc"
+            "args": "127.0.0.1:25563 1 mcgun"
         },
         {
             "type": "java",
             "name": "Peer 2",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25564 2 meta"
+            "args": "127.0.0.1:25564 2 metadias"
         },
         {
             "type": "java",
@@ -27,10 +27,24 @@
         },
         {
             "type": "java",
-            "name": "TestApp",
+            "name": "BACKUP CC r=2",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mc BACKUP clean_code.pdf 2"
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
+        },
+        {
+            "type": "java",
+            "name": "STATE 1",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mcgun STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 metadias STATE"
         }
     ]
 }

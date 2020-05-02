@@ -30,6 +30,9 @@ public class BSDispatcher implements Dispatcher {
             case "RECLAIM":
                 action = new Reclaim(args);
                 break;
+            case "STATE":
+                action = new State();
+                break;
             default:
                 throw new MessageError("Received unknown RMI message");
         }

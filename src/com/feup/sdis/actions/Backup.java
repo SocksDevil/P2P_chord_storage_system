@@ -48,21 +48,7 @@ public class Backup extends Action {
 
         for (int i = 0; i < this.file.getNChunks(); i++) {
 
-            final int chunkNo = i;
-            Runnable task = () -> {
-                // -- TODO: This will change because of Chord
-                LookupMessage lookupRequest = new LookupMessage(this.file.getfileID(), chunkNo, this.repDegree,
-                        Peer.addressInfo);
-                Message lookupMessageAnswer = this.sendMessage(lookupRequest,
-                        new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
-                // --
-                BackupMessage backupRequest = new BackupMessage(this.file.getfileID(), chunkNo, this.repDegree,
-                        this.chunks.get(chunkNo), lookupMessageAnswer.getConnection());
-                Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
-            };
-
-            BSDispatcher.servicePool.execute(task);
-
+            BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), i, repDegree, this.chunks.get(i)));
         }
 
         return "Backed up file";
