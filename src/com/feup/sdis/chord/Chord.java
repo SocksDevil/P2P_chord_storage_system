@@ -1,7 +1,6 @@
 package com.feup.sdis.chord;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import com.feup.sdis.model.Store;
 
@@ -32,7 +31,7 @@ public class Chord {
             ret = fingerTable.get(i);
             if(!ret.equals(connection) && !Store.instance().getReplCount().containsPeer(chunkID, ret)){
                 System.out.println("Addr: " + addr + " Connection: " + connection + " Ret: " + ret);
-                if((addr != null  && !addr.equals(connection)) || addr == null){
+                if((addr != null  && !addr.equals(ret)) || addr == null){
                     Store.instance().getReplCount().addNewID(chunkID, ret, currRepDegree);
                     return ret;
                 }

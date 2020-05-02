@@ -6,6 +6,7 @@ import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
 
 public class ChunkBackup extends Action implements Runnable {
+    int MAX_TRIES = 3;
 
     String fileID;
     int chunkNo;
@@ -29,6 +30,7 @@ public class ChunkBackup extends Action implements Runnable {
     @Override
     String process() {
 
+        int curr = 0;
         for (int i = 0; i < this.desiredRepDeg; i++) {
 
             // -- TODO: This will change because of Chord
@@ -40,10 +42,12 @@ public class ChunkBackup extends Action implements Runnable {
             Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
 
             if(backupMessageAnswer.getStatus() == 400){
-                
-                //TODO: dps contar o numero de vezes que se faz aqui
+                curr++;
                 i--;
             }
+
+            if(curr > MAX_TRIES)
+                return null;
 
         }
         return null;
