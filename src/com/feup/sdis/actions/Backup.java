@@ -4,6 +4,8 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.BackupMessage;
 import com.feup.sdis.messages.LookupMessage;
 import com.feup.sdis.messages.Message;
+import com.feup.sdis.model.BackupFileInfo;
+import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
 import static com.feup.sdis.peer.Constants.BLOCK_SIZE;
@@ -21,101 +23,100 @@ import javax.naming.directory.InvalidAttributeValueException;
 
 public class Backup extends Action {
 
+    private BackupFileInfo file;
     private String filepath;
     private int repDegree;
     private ArrayList<byte[]> chunks;
-    private File file;
-    private String fileID;
-    private int nChunks;
 
     public Backup(String[] args) {
 
         this.filepath = args[1];
         this.repDegree = Integer.parseInt(args[2]);
-        try {
-            this.readFile();
-        } catch (InvalidAttributeValueException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        this.chunks = new ArrayList<>();
+
     }
 
     @Override
     public String process() {
+
+        try {
+            BackupFileInfo newFile = this.readFile();
+            Store.instance().getBackedUpFiles().put(newFile.getfileID(), newFile);
+
+        } catch (InvalidAttributeValueException | IOException e) {
+            return e.getMessage();
+        }
+
         // -- TODO: This will change because of Chord
-        LookupMessage lookupRequest = new LookupMessage(this.fileID + '#' + this.nChunks, this.repDegree,
+        LookupMessage lookupRequest = new LookupMessage(this.file.getfileID() + '#' + 0, this.repDegree,
                 Peer.addressInfo);
         Message lookupMessageAnswer = this.sendMessage(lookupRequest,
                 new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
         // --
 
         // TODO: execute for each chunk
-        BackupMessage backupRequest = new BackupMessage(this.fileID, this.nChunks, this.repDegree, this.chunks.get(0),lookupMessageAnswer.getConnection());
+        BackupMessage backupRequest = new BackupMessage(this.file.getfileID(), 0, this.repDegree, this.chunks.get(0),lookupMessageAnswer.getConnection());
         Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
 
         return "Backed up file";
     }
 
-    public void readFile() throws InvalidAttributeValueException {
+    public BackupFileInfo readFile() throws InvalidAttributeValueException, IOException {
 
         if (filepath == null)
             throw new InvalidAttributeValueException("Filepath can't be null");
         if (repDegree < 1)
             throw new InvalidAttributeValueException("Replication Degree must be at least 1");
 
-        this.file = new File(filepath);
+        File file = new File(filepath);
 
-        if (!this.file.exists()) {
+        if (!file.exists()) {
             throw new InvalidAttributeValueException("File does not exist");
         }
 
         // Get file info
         Path path = Paths.get(filepath);
-        FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
-        UserPrincipal owner = null;
+        
+        // Get file owner
         String ownerName = "default";
-
+        
         try {
-            owner = ownerAttributeView.getOwner();
+            FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
+            UserPrincipal owner = ownerAttributeView.getOwner();
             ownerName = owner.getName();
         } catch (IOException e1) {
 
             e1.printStackTrace();
         }
 
-        // Generate UUID for file
-        String metaFileName = this.file.getName() + String.valueOf(this.file.lastModified()) + ownerName;
-        this.fileID = UUID.nameUUIDFromBytes(metaFileName.getBytes()).toString();
-        this.chunks = new ArrayList<>();
-
-
-        try {
-            this.splitChunks();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-
-            return;
-        }
+        // Generate UUID for file: filename + lastmodified + ownername TODO: change this, maybe include file hash
+        String metaFileName = file.getName() + String.valueOf(file.lastModified()) + ownerName;
+        String fileID = UUID.nameUUIDFromBytes(metaFileName.getBytes()).toString();
         
 
+        // Split chunks
+        int nChunks = this.splitChunks(file);
+        
+        return new BackupFileInfo(fileID, file.getName() , filepath, nChunks, repDegree);
     }
 
-    // TODO: Este split está errado pq está com os tamanhos hardcoded
-    public void splitChunks() throws IOException {
+    public int splitChunks(File file) throws IOException {
+        
         byte[] fileData = Files.readAllBytes(file.toPath());
-        this.nChunks = (int) (Math.floor(this.file.length() / 64000) + 1);
-        for (int i = 0; i < this.nChunks; i++) {
+        int nChunks = (int) Math.ceil(file.length() / Constants.BLOCK_SIZE);
+
+        for (int i = 0; i < nChunks; i++) {
             byte[] chunk;
 
-            if (i == this.nChunks - 1)
-                chunk = Arrays.copyOfRange(fileData, i * 64000 , fileData.length);
+            if (i == nChunks - 1)
+                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE , fileData.length);
             else
-                chunk = Arrays.copyOfRange(fileData, i * 64000 , (i + 1) * 64000 );
+                chunk = Arrays.copyOfRange(fileData, i * Constants.BLOCK_SIZE , (i + 1) * Constants.BLOCK_SIZE );
 
             this.chunks.add(chunk);
         }
 
+        return nChunks;
     }
 
 }

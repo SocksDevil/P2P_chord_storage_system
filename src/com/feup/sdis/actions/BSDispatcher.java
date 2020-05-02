@@ -4,8 +4,12 @@ import com.feup.sdis.exceptions.MessageError;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class BSDispatcher implements Dispatcher {
+
+    public static final ExecutorService servicePool = Executors.newCachedThreadPool();
 
     public String processMsg(String msg) throws MessageError {
         final String[] args = msg.split(",");
