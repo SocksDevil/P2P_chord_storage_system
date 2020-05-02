@@ -32,11 +32,18 @@ public class ChunkBackup extends Action implements Runnable {
         for (int i = 0; i < this.desiredRepDeg; i++) {
 
             // -- TODO: This will change because of Chord
-            LookupMessage lookupRequest = new LookupMessage(this.fileID + "#" + this.chunkNo + "#" + i,  Peer.addressInfo);
+            LookupMessage lookupRequest = new LookupMessage(this.fileID + "#" + this.chunkNo , i,  Peer.addressInfo);
             Message lookupMessageAnswer = this.sendMessage(lookupRequest, new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
             // --
             BackupMessage backupRequest = new BackupMessage(this.fileID, chunkNo, i, this.chunkData, lookupMessageAnswer.getConnection());
+
             Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+
+            if(backupMessageAnswer.getStatus() == 400){
+                
+                //TODO: dps contar o numero de vezes que se faz aqui
+                i--;
+            }
 
         }
         return null;

@@ -1,4 +1,5 @@
 peers/
+*.ser
 
 # Created by .ignore support plugin (hsz.mobi)
 ### VisualStudioCode template

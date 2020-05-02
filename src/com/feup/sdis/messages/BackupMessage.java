@@ -13,7 +13,7 @@ public class BackupMessage extends Message {
     private int chunkNo;
     private int desiredRepDegree;
     private SocketAddress connection;
-    private int status;
+
     private byte[] chunkData;
 
     public BackupMessage(String fileID, int chunkNo, int desiredRepDegree, byte[] data, SocketAddress connection) {

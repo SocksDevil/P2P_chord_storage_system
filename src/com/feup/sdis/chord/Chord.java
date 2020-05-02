@@ -19,15 +19,27 @@ public class Chord {
     public SocketAddress getDest(SocketAddress connection, String chunkID, int currRepDegree){
         if(fingerTable.size() == 1)
             return null;
+
+        SocketAddress addr = null;
         if(Store.instance().getReplCount().containsRepDegree(chunkID, currRepDegree))
-            Store.instance().getReplCount().removeRepDegree(chunkID, currRepDegree);
+            addr = Store.instance().getReplCount().removeRepDegree(chunkID, currRepDegree);
+
         SocketAddress ret = null;
         // TODO: ver ocupação tbm. depois terá de ser sequencial, é só pelos loles para já
-        do{
-            ret = fingerTable.get(new Random().nextInt(fingerTable.size()));
-        } while(ret.equals(connection));
-        Store.instance().getReplCount().addNewID(chunkID, connection.toString(), currRepDegree);
-        return ret;
+
+        for (int i = 0; i < fingerTable.size(); i++) {
+            
+            ret = fingerTable.get(i);
+            if(!ret.equals(connection) && !Store.instance().getReplCount().containsPeer(chunkID, ret)){
+                System.out.println("Addr: " + addr + " Connection: " + connection + " Ret: " + ret);
+                if((addr != null  && !addr.equals(connection)) || addr == null){
+                    Store.instance().getReplCount().addNewID(chunkID, ret, currRepDegree);
+                    return ret;
+                }
+            }
+        }
+
+        return null;
     }
 
     @Override

@@ -39,7 +39,7 @@ public class LookupMessage extends Message {
     @Override
     public String toString(){
 
-        return "LOOKUP: " + this.chunkID + "-" + this.addressInfo; 
+        return "LOOKUP: " + this.chunkID + "-" +this.currRepDegree + "-"+ this.addressInfo; 
     }
     
 }
