@@ -8,7 +8,8 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.feup.sdis.messages.Message;
+import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
     
@@ -45,10 +46,10 @@ public class MessageListener {
                         } else {
 
                             System.out.println("Received: " + messageObj);
-                            if (messageObj instanceof Message) {
+                            if (messageObj instanceof Request) {
 
-                                Message message = (Message) messageObj;
-                                Message answer = message.handle();
+                                Request request = (Request) messageObj;
+                                Response answer = request.handle();
                                 out.writeObject(answer);
 
                             }
@@ -60,10 +61,7 @@ public class MessageListener {
                         // socket.shutdownInput();
 
                         socket.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
+                    } catch (IOException | ClassNotFoundException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }

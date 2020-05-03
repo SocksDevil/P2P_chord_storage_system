@@ -1,18 +1,19 @@
-package com.feup.sdis.messages;
+package com.feup.sdis.messages.requests;
 
 import com.feup.sdis.chord.SocketAddress;
+import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.peer.Server;
 
-public class InitMessage extends Message {
+public class InitRequest extends Request {
 
     private SocketAddress connection;
 
-    public InitMessage(SocketAddress connection) {
+    public InitRequest(SocketAddress connection) {
         this.connection = connection;
     }
 
     @Override
-    public Message handle() {
+    public Response handle() {
         Server.chord.addConnection(connection);
         System.out.println( "FingerTable:\n" +  Server.chord.toString());
         return null;

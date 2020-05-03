@@ -2,10 +2,7 @@ package com.feup.sdis.model;
 
 import com.feup.sdis.peer.Constants;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 
 public class StoredChunkInfo implements Serializable {
 
@@ -41,5 +38,9 @@ public class StoredChunkInfo implements Serializable {
 
     public void storeFile(byte[] body) throws IOException {
         (new FileOutputStream(Constants.backupFolder + fileID + "#" + chunkNo)).write(body);
+    }
+
+    public byte[] getBody() throws IOException {
+        return (new FileInputStream(Constants.backupFolder + fileID + "#" + chunkNo)).readAllBytes();
     }
 }

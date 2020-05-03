@@ -1,7 +1,12 @@
 package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.messages.*;
+import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.BackupRequest;
+import com.feup.sdis.messages.requests.LookupRequest;
+import com.feup.sdis.messages.requests.Request;
+import com.feup.sdis.messages.responses.BackupResponse;
+import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
@@ -14,7 +19,7 @@ public class ChunkBackup extends Action implements Runnable {
     int chunkNo;
     byte[] chunkData;
 
-    public ChunkBackup(String fileID, int chunkNo,int repID, byte[] chunkData) {
+    public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData) {
 
         this.fileID = fileID;
         this.chunkNo = chunkNo;
@@ -34,21 +39,22 @@ public class ChunkBackup extends Action implements Runnable {
         for (int i = 0; i < this.MAX_TRIES; i++) {
 
             // -- TODO: This will change because of Chord
-            LookupMessage lookupRequest = new LookupMessage(this.fileID + "#" + this.chunkNo, this.repID, Peer.addressInfo);
-            Message lookupMessageAnswer = this.sendMessage(lookupRequest,
+            LookupRequest lookupRequest = new LookupRequest(this.fileID + "#" + this.chunkNo, this.repID, Peer.addressInfo);
+            LookupResponse lookupRequestAnswer = this.sendMessage(lookupRequest,
                     new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
             // --
-            BackupMessage backupRequest = new BackupMessage(this.fileID, chunkNo, this.repID, this.chunkData,
-                    lookupMessageAnswer.getConnection());
+            if (lookupRequest == null) {
+                continue;
+            }
 
-            Message backupMessageAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.repID, this.chunkData,
+                    lookupRequestAnswer.getAddress());
 
-            if (backupMessageAnswer.getStatus() == 200) {
-
+            BackupResponse backupRequestAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
                 Store.instance().getReplCount().addNewID(this.fileID + "#" + this.chunkNo, Peer.addressInfo, this.repID);
                 break;
-            } 
-
+            }
         }
         return null;
     }

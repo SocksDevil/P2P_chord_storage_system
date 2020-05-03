@@ -37,7 +37,7 @@ public class BackupFileInfo implements Serializable {
         return restoredChunks;
     }
 
-    public boolean isFullyRestored() {
+    public synchronized boolean isFullyRestored() {
         return restoredChunks.size() == nChunks;
     }
 

@@ -4,7 +4,7 @@ import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.actions.Dispatcher;
 import com.feup.sdis.actions.Init;
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.messages.InitMessage;
+import com.feup.sdis.messages.requests.InitRequest;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -68,7 +68,7 @@ public class Peer {
         }
 
         // TODO: Initial message - this will change from Server to chord - Por num thread
-        new Init(new InitMessage(addressInfo)).process();
+        new Init(new InitRequest(addressInfo)).process();
 
         BSDispatcher dispatcher = new BSDispatcher();
         try {

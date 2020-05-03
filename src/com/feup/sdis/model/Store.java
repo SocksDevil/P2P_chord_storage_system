@@ -10,6 +10,8 @@ import java.util.Set;
 public class Store {
     private static Store storeInstance;
     final private ReplicationCounter replCount = new ReplicationCounter(Constants.peerRootFolder + "repl.ser");
+    final private SerializableHashMap<String> backedUpFilesIds = new SerializableHashMap<>(
+            Constants.peerRootFolder + "ids.ser");
     final private SerializableHashMap<BackupFileInfo> backedUpFiles = new SerializableHashMap<>(
             Constants.peerRootFolder + "backed.ser");
     final private SerializableHashMap<StoredChunkInfo> storedFiles = new SerializableHashMap<>(
@@ -37,6 +39,10 @@ public class Store {
 
     public synchronized SerializableHashMap<StoredChunkInfo> getStoredFiles() {
         return storedFiles;
+    }
+
+    public synchronized SerializableHashMap<String> getBackedUpFilesIds() {
+        return backedUpFilesIds;
     }
 
     public synchronized int getUsedDiskSpace() {
