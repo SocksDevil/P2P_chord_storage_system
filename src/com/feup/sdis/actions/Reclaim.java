@@ -1,6 +1,7 @@
 package com.feup.sdis.actions;
 
 import com.feup.sdis.messages.requests.Request;
+import com.feup.sdis.peer.MessageListener;
 
 public class Reclaim extends Action {
     private final Request request;
@@ -14,7 +15,7 @@ public class Reclaim extends Action {
     @Override
     public String process() {
         //TODO: Implement reclaim
-        this.sendMessage(request, null);
+        MessageListener.sendMessage(request, null);
         return "Reclaimed space";
     }
 }

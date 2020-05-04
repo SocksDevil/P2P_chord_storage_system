@@ -1,44 +1,47 @@
 package com.feup.sdis.chord;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
-import com.feup.sdis.model.Store;
+import com.feup.sdis.messages.requests.ChordClosestPreceedingRequest;
+import com.feup.sdis.messages.responses.ChordClosestPreceedingResponse;
+import com.feup.sdis.peer.MessageListener;
+
 
 public class Chord {
+
+    public static Chord chordInstance;
     private ArrayList<SocketAddress> fingerTable;
+    private SocketAddress self = null;
+    private SocketAddress predecessor = null;
+    private SocketAddress successor = null;
     
-    public Chord(){
-        fingerTable = new ArrayList<>();
+    // create
+    public Chord(SocketAddress self){
+        this.fingerTable = new ArrayList<>(7);
+        this.self = self;
+        this.successor = self;
     }
 
-    public void addConnection(SocketAddress connection){
-        this.fingerTable.add(connection);
+    // join
+    public Chord(SocketAddress self, SocketAddress node){
+        this(self);
+
+        ChordClosestPreceedingResponse res =  MessageListener.sendMessage(new ChordClosestPreceedingRequest(self), node);
+        this.successor = res.getAddress();
     }
 
-    public SocketAddress getDest(SocketAddress connection, String chunkID, int currRepDegree){
-        if(fingerTable.size() == 1)
-            return null;
 
-        SocketAddress addr = null;
-        if(Store.instance().getReplCount().containsRepDegree(chunkID, currRepDegree))
-            addr = Store.instance().getReplCount().removeRepDegree(chunkID, currRepDegree);
+    public SocketAddress closestPreceedingNode(UUID key){
 
-        SocketAddress ret = null;
-        // TODO: ver ocupação tbm. depois terá de ser sequencial, é só pelos loles para já
-
-        for (int i = 0; i < fingerTable.size(); i++) {
+        for (int i = fingerTable.size() - 1; i >= 0; i--) {
             
-            ret = fingerTable.get(i);
-            if(!ret.equals(connection) && !Store.instance().getReplCount().containsPeer(chunkID, ret)){
-                System.out.println("Addr: " + addr + " Connection: " + connection + " Ret: " + ret);
-                if((addr != null  && !addr.equals(ret)) || addr == null){
-                    Store.instance().getReplCount().addNewID(chunkID, ret, currRepDegree);
-                    return ret;
-                }
-            }
+            if(this.fingerTable.get(i).getPeerID().compareTo(self.getPeerID()) > 0 && this.fingerTable.get(i).getPeerID().compareTo(key) < 0)
+                return this.fingerTable.get(i);
+
         }
 
-        return null;
+        return self;
     }
 
     @Override

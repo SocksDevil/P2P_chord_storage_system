@@ -3,6 +3,7 @@ package com.feup.sdis.peer;
 import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.actions.Dispatcher;
 import com.feup.sdis.actions.Init;
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.InitRequest;
 
@@ -21,10 +22,11 @@ public class Peer {
 
     public static void main(String[] args) {
 
-        if (args.length != 4) {
-            System.out.println("Invalid number of arguments");
-            return;
-        }
+        // // TODO fix argument count because of optional arguments
+        // if (args.length != 5) {
+        //     System.out.println("Invalid number of arguments");
+        //     return;
+        // }
 
         String hostname = args[0];
         String peerID = args[1];
@@ -45,6 +47,7 @@ public class Peer {
             return;
         }
 
+        Constants.peerID = args[4];
         Constants.SENDER_ID = peerID;
         Constants.SERVER_IP = ip;
         Constants.MAX_OCCUPIED_DISK_SPACE_MB = Integer.parseInt(args[3]) * Constants.MEGABYTE;
@@ -58,7 +61,7 @@ public class Peer {
 
         // TODO: com argumentos
         try {
-            addressInfo = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port);
+            addressInfo = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port, peerID);
         } catch (NumberFormatException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -69,6 +72,24 @@ public class Peer {
 
         // TODO: Initial message - this will change from Server to chord - Por num thread
         new Init(new InitRequest(addressInfo)).process();
+
+        // TODO: De-spaghetize this code
+        if(args.length == 6){
+
+            SocketAddress ringBoostrapping;
+            try {
+                ringBoostrapping = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port, peerID);
+                Chord.chordInstance = new Chord(addressInfo,ringBoostrapping);
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        else{
+
+            Chord.chordInstance = new Chord(addressInfo);
+        }
+
 
         BSDispatcher dispatcher = new BSDispatcher();
         try {

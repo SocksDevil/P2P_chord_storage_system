@@ -3,6 +3,7 @@ package com.feup.sdis.actions;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.InitRequest;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 
 public class Init extends Action{
     private final InitRequest message;
@@ -13,7 +14,7 @@ public class Init extends Action{
 
     @Override
     public String process() {
-        this.sendMessage(message, new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
+        MessageListener.sendMessage(message, new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT, Constants.peerID));
         return "Sent Connection to Server";
     }
 }

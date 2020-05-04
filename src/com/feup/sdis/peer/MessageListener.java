@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
@@ -71,4 +72,30 @@ public class MessageListener {
             }
         }
     }
+
+    public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+        try {
+            final Socket socket = new Socket(destination.getIp(), destination.getPort());
+            final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+            out.writeObject(request);
+            System.out.println("Message sent : " + request);
+            socket.shutdownOutput();
+            T receivedMessage = (T) in.readObject();
+            System.out.println("Message received : " + receivedMessage);
+
+            // while (in.readLine() != null) {}
+            socket.shutdownInput();
+            socket.close();
+
+            return receivedMessage;
+        } catch (IOException | ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }

@@ -10,6 +10,7 @@ import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
+import com.feup.sdis.peer.MessageListener;
 
 public class ChunkBackup extends Action implements Runnable {
     int MAX_TRIES = 3;
@@ -40,8 +41,8 @@ public class ChunkBackup extends Action implements Runnable {
 
             // -- TODO: This will change because of Chord
             LookupRequest lookupRequest = new LookupRequest(this.fileID + "#" + this.chunkNo, this.repID, Peer.addressInfo);
-            LookupResponse lookupRequestAnswer = this.sendMessage(lookupRequest,
-                    new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
+            LookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest,
+                    new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT,Constants.peerID));
             // --
             if (lookupRequest == null) {
                 continue;
@@ -50,7 +51,7 @@ public class ChunkBackup extends Action implements Runnable {
             BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.repID, this.chunkData,
                     lookupRequestAnswer.getAddress());
 
-            BackupResponse backupRequestAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
             if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
                 Store.instance().getReplCount().addNewID(this.fileID + "#" + this.chunkNo, Peer.addressInfo, this.repID);
                 break;

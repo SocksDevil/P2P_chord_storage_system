@@ -9,6 +9,7 @@ import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.BackupFileInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;
 
 import java.io.ByteArrayOutputStream;
@@ -37,15 +38,15 @@ public class Restore extends Action {
                     LookupRequest lookupRequest = new LookupRequest(file.getfileID() + "#" + chunkNo
                             , replicator, Peer.addressInfo);
 
-                    LookupResponse lookupResponse = this.sendMessage(lookupRequest,
-                            new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
+                    LookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest,
+                            new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT, Constants.peerID));
 
                     if(lookupResponse == null)
                         continue;
 
                     GetChunkRequest getChunkRequest = new GetChunkRequest(file.getfileID(), chunkNo);
 
-                    ChunkResponse chunkResponse = this.sendMessage(getChunkRequest, lookupResponse.getAddress());
+                    ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
 
                     if (chunkResponse != null && chunkResponse.getStatus() != Status.SUCCESS)
                         continue;
