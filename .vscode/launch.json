@@ -1,0 +1,78 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Peer 1",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25566 1 mcgun 3"
+        },
+        {
+            "type": "java",
+            "name": "Peer 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25567 2 metadias 3"
+        },
+        {
+            "type": "java",
+            "name": "Peer 3",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25568 3 fellow_ooffer 3"
+        },
+        {
+            "type": "java",
+            "name": "Peer 4",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25569 4 motaengil 3"
+        },
+        {
+            "type": "java",
+            "name": "Server",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Server",
+            "args": "25565"
+        },
+        {
+            "type": "java",
+            "name": "BACKUP CC r=2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
+        },
+        {
+            "type": "java",
+            "name": "STATE 1",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mcgun STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 metadias STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 3",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 fellow_ooffer STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 4",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 motaengil STATE"
+        }
+    ]
+}

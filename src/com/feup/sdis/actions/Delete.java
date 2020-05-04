@@ -1,16 +1,19 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.messages.Message;
+
 public class Delete extends Action {
-    private final String message;
+    private final Message message;
 
     public Delete(String[] args) {
-        this.message = String.join("", args);
+        message = null;
+        // this.message = String.join("", args);
     }
 
     @Override
     public String process() {
         //TODO: Implement delete
-        this.sendMessage(message);
+        this.sendMessage(message, null);
         return "Deleted file";
     }
 }

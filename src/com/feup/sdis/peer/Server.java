@@ -1,13 +1,13 @@
 package com.feup.sdis.peer;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import com.feup.sdis.chord.Chord;
 
 public class Server {
-    private static final ExecutorService pool = Executors.newCachedThreadPool();
+
+    // TODO: depois ver isto
+    public static final Chord chord = new Chord();
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -23,47 +23,8 @@ public class Server {
             return;
         }
 
-        final ServerSocket serverSocket;
-        try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            System.out.println("Failed to initialize server on port " + port);
-            return;
-        }
-        Constants.peerRootFolder = Constants.peerParentFolder + "server" + "/";
-        Constants.backupFolder = Constants.peerRootFolder + "backups/";
-        Constants.restoredFolder = Constants.peerRootFolder + "restored/";
-        Server.createPeerFolders();
-
-        while (true) {
-            final Socket socket;
-            try {
-                socket = serverSocket.accept();
-                pool.execute(() -> {
-                    try {
-                        final PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                        final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        String message = in.readLine();
-                        if (message == null) {
-                            System.out.println("Message not received properly");
-                        } else {
-                            System.out.println(message);
-                            out.println(message);
-                        }
-
-                        socket.shutdownOutput();
-                        while (in.readLine() != null) {}
-                        socket.shutdownInput();
-
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        MessageListener receiver = new MessageListener(port);
+        receiver.receive();
     }
 
     public static void createPeerFolders() {
