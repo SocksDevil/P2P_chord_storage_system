@@ -1,6 +1,7 @@
 package com.feup.sdis.messages.requests;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
@@ -16,10 +17,13 @@ public class BackupRequest extends Request {
     private int chunkNo;
     private int desiredRepDegree;
     private SocketAddress connection;
+    private final int nChunks;
+    private final String originalFilename;
 
     private byte[] chunkData;
 
-    public BackupRequest(String fileID, int chunkNo, int desiredRepDegree, byte[] data, SocketAddress connection) {
+    public BackupRequest(String fileID, int chunkNo, int desiredRepDegree,
+                         byte[] data, SocketAddress connection, int nChunks, String originalFilename) {
 
         this.fileID = fileID;
         this.chunkNo = chunkNo;
@@ -27,6 +31,8 @@ public class BackupRequest extends Request {
         this.desiredRepDegree = desiredRepDegree;
         this.chunkData = data;
         // this.repDegree = Integer.parseInt(args[2]);
+        this.nChunks = nChunks;
+        this.originalFilename = originalFilename;
     }
 
     @Override
@@ -40,7 +46,8 @@ public class BackupRequest extends Request {
         }
 
         System.out.println("Dps do if");
-        StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo, chunkData.length);
+        StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
+                chunkData.length, nChunks, originalFilename);
         Store.instance().getStoredFiles().put(fileID + "#" + chunkNo, newChunk);
         System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 
@@ -61,10 +68,15 @@ public class BackupRequest extends Request {
         return this.connection;
     }
 
+
     @Override
     public String toString() {
-
-        return "BACKUP: " + fileID + "#" + chunkNo;
+        return "BackupRequest{" +
+                "fileID='" + fileID + '\'' +
+                ", chunkNo=" + chunkNo +
+                ", desiredRepDegree=" + desiredRepDegree +
+                ", connection=" + connection +
+                ", nChunks=" + nChunks +
+                '}';
     }
-
 }

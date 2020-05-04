@@ -10,7 +10,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public abstract class Action {
-    
+    final int MAX_TRIES = 3;
+
+
     public <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         try {
             final Socket socket = new Socket(destination.getIp(), destination.getPort());

@@ -4,7 +4,6 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
 import com.feup.sdis.messages.requests.LookupRequest;
-import com.feup.sdis.messages.requests.Request;
 import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
@@ -12,19 +11,24 @@ import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
 
 public class ChunkBackup extends Action implements Runnable {
-    int MAX_TRIES = 3;
 
     String fileID;
     int repID;
     int chunkNo;
     byte[] chunkData;
+    private final int nChunks;
+    private final int replDegree;
+    private final String originalFilename;
 
-    public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData) {
+    public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData, int nChunks, int replDegree, String originalFilename) {
 
         this.fileID = fileID;
         this.chunkNo = chunkNo;
         this.chunkData = chunkData;
         this.repID = repID;
+        this.nChunks = nChunks;
+        this.replDegree = replDegree;
+        this.originalFilename = originalFilename;
     }
 
     @Override
@@ -43,12 +47,12 @@ public class ChunkBackup extends Action implements Runnable {
             LookupResponse lookupRequestAnswer = this.sendMessage(lookupRequest,
                     new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
             // --
-            if (lookupRequest == null) {
+            if (lookupRequestAnswer == null) {
                 continue;
             }
 
-            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.repID, this.chunkData,
-                    lookupRequestAnswer.getAddress());
+            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
+                    lookupRequestAnswer.getAddress(), nChunks, originalFilename);
 
             BackupResponse backupRequestAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
             if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {

@@ -22,13 +22,17 @@ public class GetChunkRequest extends Request {
     @Override
     public Response handle() {
         final String chunkID = fileID + "#" + chunkNo;
-        if (!Store.instance().getStoredFiles().containsKey(chunkID))
+        if (!Store.instance().getStoredFiles().containsKey(chunkID)) {
+            System.out.println("Could not find chunk " + chunkID);
             return new ChunkResponse(Status.FILE_NOT_FOUND, fileID, chunkNo);
+        }
 
         final StoredChunkInfo storedChunkInfo = Store.instance().getStoredFiles().get(chunkID);
 
         try {
-            return new ChunkResponse(storedChunkInfo.getBody(), fileID, chunkNo);
+            return new ChunkResponse(storedChunkInfo.getBody(), fileID, chunkNo,
+                    storedChunkInfo.getDesiredReplicationDegree(), storedChunkInfo.getnChunks(),
+                    storedChunkInfo.getOriginalFilename());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,5 +43,13 @@ public class GetChunkRequest extends Request {
     @Override
     public SocketAddress getConnection() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "GetChunkRequest{" +
+                "fileID='" + fileID + '\'' +
+                ", chunkNo=" + chunkNo +
+                '}';
     }
 }

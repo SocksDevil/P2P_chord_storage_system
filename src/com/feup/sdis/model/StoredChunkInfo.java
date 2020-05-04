@@ -10,14 +10,17 @@ public class StoredChunkInfo implements Serializable {
     final int desiredReplicationDegree;
     final int chunkNo;
     final int chunkSize;
+    final private int nChunks;
+    private final String originalFilename;
 
-
-
-    public StoredChunkInfo(String fileID, int desiredReplicationDegree, int chunkNo, int chunkSize) {
+    public StoredChunkInfo(String fileID, int desiredReplicationDegree,
+                           int chunkNo, int chunkSize, int nChunks, String originalFilename) {
         this.fileID = fileID;
         this.desiredReplicationDegree = desiredReplicationDegree;
         this.chunkNo = chunkNo;
         this.chunkSize = chunkSize;
+        this.nChunks = nChunks;
+        this.originalFilename = originalFilename;
     }
 
     public String getFileID() {
@@ -42,5 +45,13 @@ public class StoredChunkInfo implements Serializable {
 
     public byte[] getBody() throws IOException {
         return (new FileInputStream(Constants.backupFolder + fileID + "#" + chunkNo)).readAllBytes();
+    }
+
+    public int getnChunks() {
+        return nChunks;
+    }
+
+    public String getOriginalFilename() {
+        return originalFilename;
     }
 }
