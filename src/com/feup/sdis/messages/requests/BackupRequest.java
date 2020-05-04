@@ -48,7 +48,7 @@ public class BackupRequest extends Request {
         System.out.println("Dps do if");
         StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
                 chunkData.length, nChunks, originalFilename);
-        Store.instance().getStoredFiles().put(fileID + "#" + chunkNo, newChunk);
+        Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);
         System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 
         try {

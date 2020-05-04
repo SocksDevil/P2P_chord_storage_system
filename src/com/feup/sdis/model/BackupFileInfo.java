@@ -32,6 +32,4 @@ public class BackupFileInfo implements Serializable {
 
     public int getDesiredReplicationDegree() { return desiredReplicationDegree; }
 
-
-
 }

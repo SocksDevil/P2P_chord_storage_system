@@ -21,7 +21,7 @@ public class GetChunkRequest extends Request {
 
     @Override
     public Response handle() {
-        final String chunkID = fileID + "#" + chunkNo;
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         if (!Store.instance().getStoredFiles().containsKey(chunkID)) {
             System.out.println("Could not find chunk " + chunkID);
             return new ChunkResponse(Status.FILE_NOT_FOUND, fileID, chunkNo);

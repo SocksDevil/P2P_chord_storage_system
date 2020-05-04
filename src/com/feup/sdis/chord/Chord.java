@@ -41,6 +41,15 @@ public class Chord {
         return null;
     }
 
+    public SocketAddress getResource(String chunkID, int currRepDegree){
+        if(!Store.instance().getReplCount().containsRepDegree(chunkID, currRepDegree)){
+            System.out.println("No address associated to " + chunkID + " and replication degree " + currRepDegree);
+            return null;
+        }
+
+        return Store.instance().getReplCount().getRepDegree(chunkID, currRepDegree);
+    }
+
     @Override
     public String toString(){
         String ret = "";

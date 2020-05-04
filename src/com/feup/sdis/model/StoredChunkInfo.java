@@ -40,11 +40,11 @@ public class StoredChunkInfo implements Serializable {
     }
 
     public void storeFile(byte[] body) throws IOException {
-        (new FileOutputStream(Constants.backupFolder + fileID + "#" + chunkNo)).write(body);
+        (new FileOutputStream(Constants.backupFolder + getChunkID())).write(body);
     }
 
     public byte[] getBody() throws IOException {
-        return (new FileInputStream(Constants.backupFolder + fileID + "#" + chunkNo)).readAllBytes();
+        return (new FileInputStream(Constants.backupFolder + getChunkID())).readAllBytes();
     }
 
     public int getnChunks() {
@@ -53,5 +53,13 @@ public class StoredChunkInfo implements Serializable {
 
     public String getOriginalFilename() {
         return originalFilename;
+    }
+
+    public static String getChunkID(String fileID, int chunkNo){
+        return fileID + "#" + chunkNo;
+    }
+
+    public String getChunkID(){
+        return StoredChunkInfo.getChunkID(fileID, chunkNo);
     }
 }

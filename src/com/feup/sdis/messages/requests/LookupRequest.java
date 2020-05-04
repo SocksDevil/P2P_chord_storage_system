@@ -26,7 +26,7 @@ public class LookupRequest extends Request {
         final SocketAddress addressInfo = Server.chord.getDest(this.addressInfo, this.chunkID, this.currRepDegree);
      
         if(addressInfo == null){
-            System.out.println("TODO: An error occured on LookupMessage.handle");
+            System.out.println("TODO: An error occurred on LookupMessage.handle");
             return new LookupResponse(Status.ERROR, null);
         }
         
