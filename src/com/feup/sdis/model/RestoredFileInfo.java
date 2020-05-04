@@ -23,4 +23,12 @@ public class RestoredFileInfo implements Serializable {
     public SortedMap<Integer, byte[]> getRestoredChunks() {
         return restoredChunks;
     }
+
+    public int getNChunks() {
+        return nChunks;
+    }
+
+    public int getDesiredReplicationDegree() {
+        return desiredReplicationDegree;
+    }
 }

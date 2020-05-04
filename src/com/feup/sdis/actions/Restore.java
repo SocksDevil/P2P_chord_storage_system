@@ -27,7 +27,7 @@ public class Restore extends Action {
     @Override
     public String process() {
 
-        final ChunkResponse response = this.getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
+        final ChunkResponse response = getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
         if (response == null) {
             final String error = "File " + fileID + " not found";
             System.out.println(error);
@@ -41,7 +41,7 @@ public class Restore extends Action {
         for (int i = 1; i < response.getnChunks(); i++) {
             int chunkNo = i;
             BSDispatcher.servicePool.execute(() -> {
-                final ChunkResponse chunk = this.getChunk(fileID, chunkNo, response.getReplDegree());
+                final ChunkResponse chunk = getChunk(fileID, chunkNo, response.getReplDegree());
                 if (chunk == null) {
                     System.out.println("Couldn't retrieve chunk " + chunkNo + " of file " + fileID);
                     return;
@@ -66,12 +66,12 @@ public class Restore extends Action {
         return "Restored file";
     }
 
-    private ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
+    public static ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
         for (int replicator = 0; replicator < replDegree; replicator++) {
             GetResourceRequest lookupRequest = new GetResourceRequest(StoredChunkInfo.getChunkID(fileId, chunkNo)
                     , replicator);
 
-            GetResourceResponse lookupResponse = this.sendMessage(lookupRequest,
+            GetResourceResponse lookupResponse = sendMessage(lookupRequest,
                     new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
 
             if (lookupResponse == null || lookupResponse.getAddress() == null) {
@@ -81,7 +81,7 @@ public class Restore extends Action {
 
             GetChunkRequest getChunkRequest = new GetChunkRequest(fileId, chunkNo);
 
-            ChunkResponse chunkResponse = this.sendMessage(getChunkRequest, lookupResponse.getAddress());
+            ChunkResponse chunkResponse = sendMessage(getChunkRequest, lookupResponse.getAddress());
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);
