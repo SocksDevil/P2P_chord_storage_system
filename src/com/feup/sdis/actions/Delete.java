@@ -6,8 +6,7 @@ import com.feup.sdis.messages.requests.GetResourceRequest;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.messages.responses.GetResourceResponse;
-import com.feup.sdis.model.RestoredFileInfo;
-import com.feup.sdis.model.StoredChunkInfo;
+import com.feup.sdis.model.*;
 import com.feup.sdis.peer.Constants;
 
 public class Delete extends Action {
@@ -26,6 +25,8 @@ public class Delete extends Action {
             return error;
         }
         final RestoredFileInfo file = new RestoredFileInfo(fileID, response.getReplDegree(), response.getnChunks());
+        Store.instance().getBackedUpFiles().remove(fileID);
+        //TODO delete BackupFileInfo from the peer that initiated the BACKUP. need chord stuff to figure it out
 
         for(int chunkNo = 0; chunkNo < file.getNChunks(); chunkNo++) {
             for (int replDegree = 0; replDegree < file.getDesiredReplicationDegree(); replDegree++) {
@@ -33,9 +34,8 @@ public class Delete extends Action {
                 int replicationDegree = replDegree;
                 BSDispatcher.servicePool.execute(() -> {
 
-                    GetResourceRequest lookupRequest = new GetResourceRequest(StoredChunkInfo.getChunkID(fileID, chunkNumber)
-                            , replicationDegree);
-
+                    String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
+                    GetResourceRequest lookupRequest = new GetResourceRequest(chunkID, replicationDegree);
                     GetResourceResponse lookupResponse = sendMessage(lookupRequest,
                             new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
 
