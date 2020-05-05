@@ -3,8 +3,9 @@ package com.feup.sdis.chord;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import com.feup.sdis.messages.requests.ChordClosestPreceedingRequest;
-import com.feup.sdis.messages.responses.ChordClosestPreceedingResponse;
+import com.feup.sdis.messages.requests.chord.ClosestPreceedingRequest;
+import com.feup.sdis.messages.requests.chord.FindSuccessorRequest;
+import com.feup.sdis.messages.responses.chord.ClosestPreceedingResponse;
 import com.feup.sdis.peer.MessageListener;
 
 
@@ -27,7 +28,7 @@ public class Chord {
     public Chord(SocketAddress self, SocketAddress node){
         this(self);
 
-        ChordClosestPreceedingResponse res =  MessageListener.sendMessage(new ChordClosestPreceedingRequest(self), node);
+        ClosestPreceedingResponse res =  MessageListener.sendMessage(new ClosestPreceedingRequest(self), node);
         this.successor = res.getAddress();
     }
 
@@ -52,4 +53,19 @@ public class Chord {
 
         return ret;
     }
+
+	public SocketAddress findSuccessor(UUID peerID) {
+
+        if( (peerID.compareTo(this.self.getPeerID()) > 0) && (peerID.compareTo(this.successor.getPeerID()) <= 0)){
+
+            return this.successor;
+        }
+        else{
+            SocketAddress cpn = this.closestPreceedingNode(peerID);
+            ClosestPreceedingResponse res =  MessageListener.sendMessage(new FindSuccessorRequest(peerID), cpn);
+            
+            return res.getAddress();
+        }
+
+	}
 }
