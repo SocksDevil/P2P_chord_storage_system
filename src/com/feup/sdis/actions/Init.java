@@ -1,13 +1,13 @@
 package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.messages.InitMessage;
+import com.feup.sdis.messages.requests.InitRequest;
 import com.feup.sdis.peer.Constants;
 
 public class Init extends Action{
-    private final InitMessage message;
+    private final InitRequest message;
 
-    public Init(InitMessage message) {
+    public Init(InitRequest message) {
         this.message = message;
     }
 

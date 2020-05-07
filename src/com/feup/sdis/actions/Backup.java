@@ -1,13 +1,9 @@
 package com.feup.sdis.actions;
 
-import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.messages.BackupMessage;
-import com.feup.sdis.messages.LookupMessage;
-import com.feup.sdis.messages.Message;
 import com.feup.sdis.model.BackupFileInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.Peer;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +37,7 @@ public class Backup extends Action {
         try {
             this.file = this.readFile();
             Store.instance().getBackedUpFiles().put(this.file.getfileID(), this.file);
+            Store.instance().getBackedUpFilesIds().put(this.filepath, this.file.getfileID());
 
         } catch (InvalidAttributeValueException | IOException e) {
             return e.getMessage();
@@ -49,7 +46,8 @@ public class Backup extends Action {
         for (int i = 0; i < this.repDegree; i++) {
             for (int j = 0; j < this.file.getNChunks(); j++) {
 
-                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i, this.chunks.get(j)));
+                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i,
+                        this.chunks.get(j), this.file.getNChunks(), this.repDegree, file.getOriginalFilename()));
             }
         }
         return "Backed up file";
