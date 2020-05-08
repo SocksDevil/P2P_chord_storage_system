@@ -17,8 +17,11 @@ import com.feup.sdis.peer.MessageListener;
  * CHORD TODO
  * 
  * - Add list of r sucessors as described in the paper 
- * - Create updating threads
+ * - Move updating threads to a scheduled thread pool
  * - Handle peer failing - Handle peer shutdown
+ * - See concurrency of chord (maybe we need some syncrhonized methods)
+ * - WARNING: Chord table sizes and key sizes are receiving transformations to allow testing for smaller tables, this may caused
+ * unexpected behaviour.
  */
 
 public class Chord {
@@ -217,48 +220,14 @@ public class Chord {
 
     public boolean betweenTwoKeys(UUID a, UUID b, UUID c, boolean closedLeft, boolean closedRight) {
 
+        if( (closedLeft && c.equals(a)) || (closedRight && c.equals(b)))
+            return true;
 
+        // Whole circle is valid
         if(b.equals(a) && !c.equals(a))
             return true;
 
-        if (a.compareTo(b) < 0) {
-            if ((a.compareTo(c) < 0 || (a.equals(c) && closedLeft)) && (c.compareTo(b) < 0 || (c.equals(b) && closedRight))){
-
-                return true;
-            }
-            else{
-                
-                return false;
-            }
-        } else { // b < a
-            if ((b.compareTo(c) < 0 )
-                    && (c.compareTo(a) < 0 )){
-
-                        if(b.equals(c) && closedRight){
-                            return true;
-                        }
-                        if(c.equals(a) && closedLeft){
-                            return true;
-                        }
-
-                        return false; // if in [b, a] then not in [a, b]
-                    }
-            else{
-
-                if(b.equals(c) && a.equals(b) && (closedRight || closedLeft))
-                    return true;
-
-                if(b.equals(c) && !closedRight){
-                    return false;
-                }
-                if(c.equals(a) && !closedLeft){
-                    return false;
-                }
-
-                return true;
-            }
-        }
-
+        return (a.compareTo(b) < 0) ? (a.compareTo(c) < 0) && (c.compareTo(b) < 0) : !((b.compareTo(c) < 0 ) && (c.compareTo(a) < 0 ));
     }
 
     public String state() {
