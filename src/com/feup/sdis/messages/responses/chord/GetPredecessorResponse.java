@@ -4,10 +4,10 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.Response;
 
-public class FindSuccessorResponse extends Response {
+public class GetPredecessorResponse extends Response {
     private final SocketAddress address;
 
-    public FindSuccessorResponse(Status status, SocketAddress address) {
+    public GetPredecessorResponse(Status status, SocketAddress address) {
         super(status);
         this.address = address;
     }
@@ -19,6 +19,6 @@ public class FindSuccessorResponse extends Response {
     @Override
     public String toString(){
         
-        return "res: CHD_FIND_SUCC " + this.address+ " STATUS: " + this.getStatus();
+        return "res: CHD_GET_PRED " + (this.address == null ? "*No address given*" : this.address  ) + " STATUS: " + this.getStatus();
     }
 }

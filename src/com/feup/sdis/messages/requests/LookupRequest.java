@@ -1,5 +1,8 @@
 package com.feup.sdis.messages.requests;
 
+import java.util.UUID;
+
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.LookupResponse;
@@ -23,7 +26,7 @@ public class LookupRequest extends Request {
 
     @Override
     public Response handle() {
-        final SocketAddress addressInfo = Server.chord.getDest(this.addressInfo, this.chunkID, this.currRepDegree);
+        final SocketAddress addressInfo = Chord.chordInstance.findSuccessor( UUID.nameUUIDFromBytes( (this.chunkID + "#" + this.currRepDegree).getBytes()));
      
         if(addressInfo == null){
             System.out.println("TODO: An error occured on LookupMessage.handle");

@@ -16,21 +16,21 @@
             "name": "Peer 2",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25567 2 metadias 3"
+            "args": "127.0.0.1:25567 2 metadias 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 3",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25568 3 fellow_ooffer 3"
+            "args": "127.0.0.1:25568 3 fellow_ooffer 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 4",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25569 4 motaengil 3"
+            "args": "127.0.0.1:25569 5 motaengil 3 127.0.0.1:25566"
         },
         {
             "type": "java",

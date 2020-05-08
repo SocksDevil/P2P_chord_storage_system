@@ -14,8 +14,8 @@ public class InitRequest extends Request {
 
     @Override
     public Response handle() {
-        Server.chord.addConnection(connection);
-        System.out.println( "FingerTable:\n" +  Server.chord.toString());
+        // Server.chord.addConnection(connection);
+        // System.out.println( "FingerTable:\n" +  Server.chord.toString());
         return null;
     }
 

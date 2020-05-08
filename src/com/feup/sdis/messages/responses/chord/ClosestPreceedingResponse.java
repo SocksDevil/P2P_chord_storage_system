@@ -19,6 +19,6 @@ public class ClosestPreceedingResponse extends Response{
     @Override
     public String toString(){
         
-        return "res: CHD_CLOSEST_PRECEEDING_NODE " + this.address.getPeerID() + " STATUS: " + this.getStatus();
+        return "res: CHD_CLOSEST_PRECEEDING_NODE " + this.address + " STATUS: " + this.getStatus();
     }
 }

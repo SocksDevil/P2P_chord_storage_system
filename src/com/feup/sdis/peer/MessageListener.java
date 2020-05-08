@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -35,6 +36,7 @@ public class MessageListener {
         while (true) {
             final Socket socket;
             try {
+                System.out.println("Listening on port: " + port);
                 socket = serverSocket.accept();
                 pool.execute(() -> {
                     try {
@@ -46,20 +48,17 @@ public class MessageListener {
                             System.out.println("Message not received properly");
                         } else {
 
-                            System.out.println("Received: " + messageObj);
+                            System.out.println("- IN  > " + messageObj + " from " + socket.getInetAddress() + ":" + socket.getPort());
                             if (messageObj instanceof Request) {
 
                                 Request request = (Request) messageObj;
                                 Response answer = request.handle();
                                 out.writeObject(answer);
-
+                                System.out.println("- OUT > " + (answer != null ? answer : "-------") + " to " + socket.getInetAddress() + ":" + socket.getPort());
                             }
                         }
 
                         socket.shutdownOutput();
-                        // TODO: why is this here??
-                        // while (in.readObject() != null) {}
-                        // socket.shutdownInput();
 
                         socket.close();
                     } catch (IOException | ClassNotFoundException e) {
@@ -73,27 +72,34 @@ public class MessageListener {
         }
     }
 
-    public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+    public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+        Socket socket = null;
         try {
-            final Socket socket = new Socket(destination.getIp(), destination.getPort());
+            socket = new Socket(destination.getIp(), destination.getPort());
             final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
             out.writeObject(request);
-            System.out.println("Message sent : " + request);
+            System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort() );
             socket.shutdownOutput();
             T receivedMessage = (T) in.readObject();
-            System.out.println("Message received : " + receivedMessage);
+            System.out.println("* IN  > " + (receivedMessage != null ? receivedMessage : "-------") + " from " + destination.getIp() + ":" + destination.getPort());
 
             // while (in.readLine() != null) {}
             socket.shutdownInput();
             socket.close();
 
             return receivedMessage;
-        } catch (IOException | ClassNotFoundException e) {
+        }        
+        catch(SocketException ex){
+            ex.printStackTrace();
+            return null;
+        } 
+        catch (IOException | ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
 
         return null;
     }

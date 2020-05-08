@@ -19,6 +19,12 @@ public class SocketAddress implements Serializable {
         return peerID;
     }
 
+
+    public void setPeerID(UUID peerID) {
+        this.peerID = peerID;
+    }
+
+
     public String getIp() {
         return ip;
     }
@@ -29,7 +35,7 @@ public class SocketAddress implements Serializable {
     
     @Override
     public String toString(){
-        return ip + ":" + port;
+        return ip + ":" + port + ":" + peerID.toString() ;
     }
 
     @Override

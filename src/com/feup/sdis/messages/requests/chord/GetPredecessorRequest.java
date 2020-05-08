@@ -1,27 +1,30 @@
 package com.feup.sdis.messages.requests.chord;
 
+import java.util.UUID;
+
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.Request;
-import com.feup.sdis.messages.responses.chord.ClosestPreceedingResponse;
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
 
-public class ClosestPreceedingRequest extends Request {
+
+public class GetPredecessorRequest extends Request{
 
     private SocketAddress addressInfo;
 
-    public ClosestPreceedingRequest(SocketAddress connection){
+    public GetPredecessorRequest(){
 
-        this.addressInfo = connection;
+        this.addressInfo = null; // TODO: Useless??
     }
 
     @Override
     public Response handle() {
         
-        SocketAddress preeceding = Chord.chordInstance.closestPreceedingNode(addressInfo.getPeerID());
+        SocketAddress succ = Chord.chordInstance.getPredecessor();
 
-        return new ClosestPreceedingResponse(Status.SUCCESS, preeceding);
+        return new GetPredecessorResponse(Status.SUCCESS, succ);
     }
 
     @Override
@@ -33,6 +36,7 @@ public class ClosestPreceedingRequest extends Request {
     @Override
     public String toString(){
         
-        return "req: CHD_CLOSEST_PRECEEDING_NODE " + this.addressInfo;
+        return "req: CHD_GET_PRED ";
     }
 }
+
