@@ -20,6 +20,7 @@ import com.feup.sdis.peer.MessageListener;
  * - Move updating threads to a scheduled thread pool
  * - Handle peer failing - Handle peer shutdown
  * - See concurrency of chord (maybe we need some syncrhonized methods)
+ * - Implemente the "predecessor failure-checking" of the protocol 
  * - WARNING: Chord table sizes and key sizes are receiving transformations to allow testing for smaller tables, this may caused
  * unexpected behaviour.
  */
@@ -276,6 +277,8 @@ public class Chord {
 
                 while (true) {
                     try {
+                        Chord.chordInstance.stabilize();
+                        Thread.sleep(FIX_FINGERS_INTERVAL_MS);
                         Chord.chordInstance.fixFingers();
                         Thread.sleep(FIX_FINGERS_INTERVAL_MS);
                     } catch (InterruptedException e) {
@@ -287,7 +290,7 @@ public class Chord {
             }
         });
 
-        t1.start();
+        // t1.start();
         t2.start();
     }
 

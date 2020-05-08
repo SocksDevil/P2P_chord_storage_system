@@ -11,7 +11,7 @@ import com.feup.sdis.messages.responses.chord.NotifyResponse;
 
 public class NotifyRequest extends Request{
 
-    private SocketAddress newPred;
+    private SocketAddress newPred; 
 
     public NotifyRequest(SocketAddress newPred){
 

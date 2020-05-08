@@ -36,7 +36,6 @@ public class MessageListener {
         while (true) {
             final Socket socket;
             try {
-                System.out.println("Listening on port: " + port);
                 socket = serverSocket.accept();
                 pool.execute(() -> {
                     try {

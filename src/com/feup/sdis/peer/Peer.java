@@ -13,11 +13,18 @@ import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
 
+
 public class Peer {
 
     // TODO: ver isto meu puto
     public static SocketAddress addressInfo;
 
+
+    
+    /**
+     * Peer hostAddress peerID accessPoint [chordEntryAddress] 
+     * 
+     */
     public static void main(String[] args) {
 
         // // TODO fix argument count because of optional arguments
@@ -26,18 +33,18 @@ public class Peer {
         // return;
         // }
 
-        String hostname = args[0];
+        String hostAddress = args[0];
         String peerID = args[1];
         String accessPoint = args[2];
-        String ip;
-        int port;
 
-        if (!hostname.contains(":")) {
+
+        if (!hostAddress.contains(":")) {
             System.out.println("Hostname should be provided in the form ip:number");
         }
 
-        String[] arguments = hostname.split(":");
-
+        String[] arguments = hostAddress.split(":");
+        String ip;
+        int port;
         try {
             ip = arguments[0];
             port = Integer.parseInt(arguments[1]);
@@ -69,21 +76,15 @@ public class Peer {
             e1.printStackTrace();
         }
 
-        // // TODO: Initial message - this will change from Server to chord - Por num
-        // thread
-        // new Init(new InitRequest(addressInfo)).process();
-
-        // TODO: De-spaghetize this code
         if (args.length == 5) {
 
-            String bsIP;
-            int bsPort;
-
             if (!args[4].contains(":")) {
-                System.out.println("Hostname should be provided in the form ip:number");
+                System.out.println("Chord entry should be provided in the form ip:number");
             }
 
             String[] boostrapingArguments = args[4].split(":");
+            String bsIP;
+            int bsPort;
 
             try {
                 bsIP = boostrapingArguments[0];
@@ -93,10 +94,8 @@ public class Peer {
                 return;
             }
 
-            SocketAddress ringBoostrapping = new SocketAddress(bsIP, bsPort,
-                    UUID.nameUUIDFromBytes(peerID.getBytes()).toString());
+            SocketAddress ringBoostrapping = new SocketAddress(bsIP, bsPort, UUID.nameUUIDFromBytes(peerID.getBytes()).toString());
             Chord.chordInstance = new Chord(addressInfo, ringBoostrapping);
-
         } else {
 
             Chord.chordInstance = new Chord(addressInfo);

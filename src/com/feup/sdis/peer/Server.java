@@ -2,7 +2,6 @@ package com.feup.sdis.peer;
 
 import java.io.*;
 
-import com.feup.sdis.chord.Chord;
 
 public class Server {
 
