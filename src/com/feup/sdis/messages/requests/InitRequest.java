@@ -2,7 +2,6 @@ package com.feup.sdis.messages.requests;
 
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.responses.Response;
-import com.feup.sdis.peer.Server;
 
 public class InitRequest extends Request {
 

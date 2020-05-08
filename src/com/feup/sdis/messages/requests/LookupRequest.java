@@ -26,10 +26,11 @@ public class LookupRequest extends Request {
 
     @Override
     public Response handle() {
-        final SocketAddress addressInfo = Chord.chordInstance.findSuccessor( UUID.nameUUIDFromBytes( (this.chunkID + "#" + this.currRepDegree).getBytes()));
+        
+        final SocketAddress addressInfo = Chord.chordInstance.lookup(this.chunkID,this.currRepDegree);
      
         if(addressInfo == null){
-            System.out.println("TODO: An error occured on LookupMessage.handle");
+            System.out.println("TODO: An error occurred on LookupMessage.handle");
             return new LookupResponse(Status.ERROR, null);
         }
         

@@ -46,7 +46,8 @@ public class Backup extends Action {
         for (int i = 0; i < this.repDegree; i++) {
             for (int j = 0; j < this.file.getNChunks(); j++) {
 
-                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i, this.chunks.get(j)));
+                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i,
+                        this.chunks.get(j), this.file.getNChunks(), this.repDegree, file.getOriginalFilename()));
             }
         }
         return "Backed up file";

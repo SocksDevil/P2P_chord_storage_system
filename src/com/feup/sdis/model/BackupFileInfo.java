@@ -11,7 +11,6 @@ public class BackupFileInfo implements Serializable {
     final private String originalPath;
     final private int nChunks;
     final private int desiredReplicationDegree;
-    final private SortedMap<Integer, byte[]> restoredChunks = new ConcurrentSkipListMap<>();
 
     public BackupFileInfo(String fileID, String originalFilename, String originalPath, int nChunks, int desiredReplicationDegree) {
         this.fileID = fileID;
@@ -32,13 +31,5 @@ public class BackupFileInfo implements Serializable {
     }
 
     public int getDesiredReplicationDegree() { return desiredReplicationDegree; }
-
-    public SortedMap<Integer, byte[]> getRestoredChunks() {
-        return restoredChunks;
-    }
-
-    public synchronized boolean isFullyRestored() {
-        return restoredChunks.size() == nChunks;
-    }
 
 }

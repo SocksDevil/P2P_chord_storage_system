@@ -11,6 +11,7 @@ import com.feup.sdis.messages.requests.chord.NotifyRequest;
 import com.feup.sdis.messages.responses.chord.ClosestPreceedingResponse;
 import com.feup.sdis.messages.responses.chord.FindSuccessorResponse;
 import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
+import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 
 /**
@@ -86,6 +87,11 @@ public class Chord {
         }
 
         return self;
+    }
+
+    public SocketAddress lookup(String chunkID, int repDegree ){
+
+       return this.findSuccessor( UUID.nameUUIDFromBytes(  StoredChunkInfo.getChunkID(chunkID, repDegree).getBytes()));
     }
 
     public SocketAddress findSuccessor(UUID key) {

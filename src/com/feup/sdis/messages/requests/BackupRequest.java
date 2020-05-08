@@ -16,10 +16,13 @@ public class BackupRequest extends Request {
     private int chunkNo;
     private int desiredRepDegree;
     private SocketAddress connection;
+    private final int nChunks;
+    private final String originalFilename;
 
     private byte[] chunkData;
 
-    public BackupRequest(String fileID, int chunkNo, int desiredRepDegree, byte[] data, SocketAddress connection) {
+    public BackupRequest(String fileID, int chunkNo, int desiredRepDegree,
+                         byte[] data, SocketAddress connection, int nChunks, String originalFilename) {
 
         this.fileID = fileID;
         this.chunkNo = chunkNo;
@@ -27,6 +30,8 @@ public class BackupRequest extends Request {
         this.desiredRepDegree = desiredRepDegree;
         this.chunkData = data;
         // this.repDegree = Integer.parseInt(args[2]);
+        this.nChunks = nChunks;
+        this.originalFilename = originalFilename;
     }
 
     @Override
@@ -39,9 +44,9 @@ public class BackupRequest extends Request {
             return new BackupResponse(Status.NO_SPACE);
         }
 
-        System.out.println("Dps do if");
-        StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo, chunkData.length);
-        Store.instance().getStoredFiles().put(fileID + "#" + chunkNo, newChunk);
+        StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
+                chunkData.length, nChunks, originalFilename);
+        Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);
         System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 
         try {
@@ -61,10 +66,15 @@ public class BackupRequest extends Request {
         return this.connection;
     }
 
+
     @Override
     public String toString() {
-
-        return "BACKUP: " + fileID + "#" + chunkNo;
+        return "BackupRequest{" +
+                "fileID='" + fileID + '\'' +
+                ", chunkNo=" + chunkNo +
+                ", desiredRepDegree=" + desiredRepDegree +
+                ", connection=" + connection +
+                ", nChunks=" + nChunks +
+                '}';
     }
-
 }

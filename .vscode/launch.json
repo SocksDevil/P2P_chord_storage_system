@@ -101,6 +101,14 @@
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
             "args": "127.0.0.1 eduvidas STATE"
+
+        }
+        {
+            "type": "java",
+            "name": "RESTORE",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mcgun RESTORE c8223975-3365-3215-b46a-df17c9e913d0"
         }
     ]
 }
