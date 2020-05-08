@@ -16,11 +16,13 @@ import com.feup.sdis.peer.MessageListener;
 /**
  * CHORD TODO
  * 
- * - Add list of r sucessors as described in the paper - Move updating threads
- * to a scheduled thread pool - Handle peer failing - Handle peer shutdown - See
- * concurrency of chord (maybe we need some syncrhonized methods) - Implemente
- * the "predecessor failure-checking" of the protocol - WARNING: Chord table
- * sizes and key sizes are receiving transformations to allow testing for
+ * - Add list of r sucessors as described in the paper 
+ * - Move updating threads to a scheduled thread pool 
+ * - Handle peer failing 
+ * - Handle peer shutdown 
+ * - See concurrency of chord (maybe we need some syncrhonized methods) 
+ * - Implement the "predecessor failure-checking" of the protocol 
+ * - WARNING: Chord table sizes and key sizes are receiving transformations to allow testing for
  * smaller tables, this may caused unexpected behaviour.
  */
 
