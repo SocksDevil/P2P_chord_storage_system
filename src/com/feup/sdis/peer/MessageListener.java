@@ -15,6 +15,7 @@ import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
     
+    private static final boolean DEBUG_MODE = false;
     private static final ExecutorService pool = Executors.newCachedThreadPool();
     private static int port;
 
@@ -47,13 +48,15 @@ public class MessageListener {
                             System.out.println("Message not received properly");
                         } else {
 
-                            System.out.println("- IN  > " + messageObj + " from " + socket.getInetAddress() + ":" + socket.getPort());
+                            if(DEBUG_MODE)
+                                System.out.println("- IN  > " + messageObj + " from " + socket.getInetAddress() + ":" + socket.getPort());
                             if (messageObj instanceof Request) {
 
                                 Request request = (Request) messageObj;
                                 Response answer = request.handle();
                                 out.writeObject(answer);
-                                System.out.println("- OUT > " + (answer != null ? answer : "-------") + " to " + socket.getInetAddress() + ":" + socket.getPort());
+                                if(DEBUG_MODE)
+                                    System.out.println("- OUT > " + (answer != null ? answer : "-------") + " to " + socket.getInetAddress() + ":" + socket.getPort());
                             }
                         }
 
@@ -79,10 +82,13 @@ public class MessageListener {
             final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
             out.writeObject(request);
-            System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort() );
+            if(DEBUG_MODE)
+                System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort() );
             socket.shutdownOutput();
             T receivedMessage = (T) in.readObject();
-            System.out.println("* IN  > " + (receivedMessage != null ? receivedMessage : "-------") + " from " + destination.getIp() + ":" + destination.getPort());
+            
+            if(DEBUG_MODE)
+                System.out.println("* IN  > " + (receivedMessage != null ? receivedMessage : "-------") + " from " + destination.getIp() + ":" + destination.getPort());
 
             // while (in.readLine() != null) {}
             socket.shutdownInput();

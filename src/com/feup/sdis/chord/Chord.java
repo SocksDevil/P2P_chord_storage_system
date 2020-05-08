@@ -29,9 +29,9 @@ public class Chord {
 
     // Constants
     private final boolean DEBUG_MODE = true;
-    private final int FINGER_TABLE_SIZE = 4;
-    private final int FIX_FINGERS_INTERVAL_MS = 500;
-    private final int STABILIZE_INTERVAL_MS = 500;
+    private final int FINGER_TABLE_SIZE = 8;
+    private final int FIX_FINGERS_INTERVAL_MS = 250;
+    private final int STABILIZE_INTERVAL_MS = 250;
 
 
     public static Chord chordInstance;
@@ -168,13 +168,13 @@ public class Chord {
         UUID neededID = this.stepValues[next];
         SocketAddress newFinger = this.findSuccessor(neededID);
 
-        if (this.fingerTable[next] == newFinger){
+        if (this.fingerTable[next].equals(newFinger)){
 
             next = (next + 1) % FINGER_TABLE_SIZE;
             return;
         }
         if(DEBUG_MODE)
-            System.out.println("> CHORD: Fixing fingers (next = " + next + ")");
+            System.out.println("> CHORD: Fixing fingers was "+ this.fingerTable[next] + " (next = " + next + ")");
 
         synchronized (this.fingerTable) {
 
@@ -184,6 +184,8 @@ public class Chord {
             System.out.println("> CHORD: Added " + newFinger);
 
         next = (next + 1) % FINGER_TABLE_SIZE;
+
+        
     }
 
     public SocketAddress getPredecessor() {
@@ -223,6 +225,9 @@ public class Chord {
 
         if( (closedLeft && c.equals(a)) || (closedRight && c.equals(b)))
             return true;
+
+        if( (!closedLeft && c.equals(a)) || (!closedRight && c.equals(b)))
+            return false;
 
         // Whole circle is valid
         if(b.equals(a) && !c.equals(a))

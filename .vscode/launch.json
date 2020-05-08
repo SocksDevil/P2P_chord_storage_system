@@ -34,6 +34,20 @@
         },
         {
             "type": "java",
+            "name": "Peer 5",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25570 6 cunhacunha 3 127.0.0.1:25566"
+        },
+        {
+            "type": "java",
+            "name": "Peer 6",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.peer.Peer",
+            "args": "127.0.0.1:25571 7 eduvidas 3 127.0.0.1:25566"
+        },
+        {
+            "type": "java",
             "name": "Server",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Server",
@@ -73,6 +87,20 @@
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
             "args": "127.0.0.1 motaengil STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 5",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 cunhacunha STATE"
+        },
+        {
+            "type": "java",
+            "name": "STATE 6",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 eduvidas STATE"
         }
     ]
 }
