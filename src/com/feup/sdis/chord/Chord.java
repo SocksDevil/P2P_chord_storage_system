@@ -16,13 +16,12 @@ import com.feup.sdis.peer.MessageListener;
 /**
  * CHORD TODO
  * 
- * - Add list of r sucessors as described in the paper 
- * - Move updating threads to a scheduled thread pool
- * - Handle peer failing - Handle peer shutdown
- * - See concurrency of chord (maybe we need some syncrhonized methods)
- * - Implemente the "predecessor failure-checking" of the protocol 
- * - WARNING: Chord table sizes and key sizes are receiving transformations to allow testing for smaller tables, this may caused
- * unexpected behaviour.
+ * - Add list of r sucessors as described in the paper - Move updating threads
+ * to a scheduled thread pool - Handle peer failing - Handle peer shutdown - See
+ * concurrency of chord (maybe we need some syncrhonized methods) - Implemente
+ * the "predecessor failure-checking" of the protocol - WARNING: Chord table
+ * sizes and key sizes are receiving transformations to allow testing for
+ * smaller tables, this may caused unexpected behaviour.
  */
 
 public class Chord {
@@ -32,7 +31,6 @@ public class Chord {
     private final int FINGER_TABLE_SIZE = 8;
     private final int FIX_FINGERS_INTERVAL_MS = 250;
     private final int STABILIZE_INTERVAL_MS = 250;
-
 
     public static Chord chordInstance;
     private SocketAddress[] fingerTable;
@@ -49,7 +47,7 @@ public class Chord {
         // TODO: Remove this, only used to allow for smaller table sizes for testing
         self.setPeerID(Chord.normalizeToSize(self.getPeerID(), FINGER_TABLE_SIZE));
         this.self = self;
-        Arrays.fill(this.fingerTable,this.self);
+        Arrays.fill(this.fingerTable, this.self);
         this.initKeyLookupSteps();
     }
 
@@ -64,12 +62,12 @@ public class Chord {
         this.setSucessor(res.getAddress());
     }
 
-    public SocketAddress getSucessor(){
+    public SocketAddress getSucessor() {
 
         return this.fingerTable[0];
     }
 
-    public SocketAddress setSucessor(SocketAddress newSucessor){
+    public SocketAddress setSucessor(SocketAddress newSucessor) {
 
         return this.fingerTable[0] = newSucessor;
     }
@@ -94,7 +92,7 @@ public class Chord {
 
             return this.getSucessor();
         } else {
-            
+
             SocketAddress cpn = this.closestPreceedingNode(key);
             FindSuccessorResponse res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
             return res.getAddress();
@@ -104,7 +102,7 @@ public class Chord {
 
     public void stabilize() {
 
-        if(DEBUG_MODE)
+        if (DEBUG_MODE)
             System.out.println("> CHORD: Stabilizing table");
 
         SocketAddress successorsPerceivedPredecessorAddr = null;
@@ -122,12 +120,11 @@ public class Chord {
                 MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
                 return;
             }
-        }
-        else{
+        } else {
             // Successor is self
             successorsPerceivedPredecessorAddr = this.predecessor;
 
-            if (successorsPerceivedPredecessorAddr == null) 
+            if (successorsPerceivedPredecessorAddr == null)
                 return;
         }
 
@@ -138,8 +135,8 @@ public class Chord {
                 false, false)) {
 
             this.setSucessor(successorsPerceivedPredecessorAddr);
-            
-            if(DEBUG_MODE)
+
+            if (DEBUG_MODE)
                 System.out.println("> CHORD: Sucessor updated to " + successorsPerceivedPredecessorAddr);
         }
 
@@ -153,8 +150,8 @@ public class Chord {
         if (this.predecessor == null || this.betweenTwoKeys(this.predecessor.getPeerID(), this.self.getPeerID(),
                 candidateID, false, false)) {
 
-            if(DEBUG_MODE)
-                System.out.println("> CHORD: Predecessor updated to "+ newPred );
+            if (DEBUG_MODE)
+                System.out.println("> CHORD: Predecessor updated to " + newPred);
             this.predecessor = newPred;
 
             return true;
@@ -168,24 +165,23 @@ public class Chord {
         UUID neededID = this.stepValues[next];
         SocketAddress newFinger = this.findSuccessor(neededID);
 
-        if (this.fingerTable[next].equals(newFinger)){
+        if (this.fingerTable[next].equals(newFinger)) {
 
             next = (next + 1) % FINGER_TABLE_SIZE;
             return;
         }
-        if(DEBUG_MODE)
-            System.out.println("> CHORD: Fixing fingers was "+ this.fingerTable[next] + " (next = " + next + ")");
+        if (DEBUG_MODE)
+            System.out.println("> CHORD: Fixing fingers was " + this.fingerTable[next] + " (next = " + next + ")");
 
         synchronized (this.fingerTable) {
 
             this.fingerTable[next] = newFinger;
         }
-        if(DEBUG_MODE)
+        if (DEBUG_MODE)
             System.out.println("> CHORD: Added " + newFinger);
 
         next = (next + 1) % FINGER_TABLE_SIZE;
 
-        
     }
 
     public SocketAddress getPredecessor() {
@@ -209,7 +205,7 @@ public class Chord {
             BigInteger nextVal = Chord.convertToBigInteger(this.self.getPeerID());
             int step = (int) Math.pow(2, i);
             nextVal = nextVal.add(new BigInteger(String.valueOf(step + "")));
-            
+
             nextVal = nextVal.mod(maxV);
             UUID neededID = Chord.convertFromBigInteger(nextVal);
 
@@ -223,17 +219,18 @@ public class Chord {
 
     public boolean betweenTwoKeys(UUID a, UUID b, UUID c, boolean closedLeft, boolean closedRight) {
 
-        if( (closedLeft && c.equals(a)) || (closedRight && c.equals(b)))
+        if ((closedLeft && c.equals(a)) || (closedRight && c.equals(b)))
             return true;
 
-        if( (!closedLeft && c.equals(a)) || (!closedRight && c.equals(b)))
+        if ((!closedLeft && c.equals(a)) || (!closedRight && c.equals(b)))
             return false;
 
         // Whole circle is valid
-        if(b.equals(a) && !c.equals(a))
+        if (b.equals(a) && !c.equals(a))
             return true;
 
-        return (a.compareTo(b) < 0) ? (a.compareTo(c) < 0) && (c.compareTo(b) < 0) : !((b.compareTo(c) < 0 ) && (c.compareTo(a) < 0 ));
+        return (a.compareTo(b) < 0) ? (a.compareTo(c) < 0) && (c.compareTo(b) < 0)
+                : !((b.compareTo(c) < 0) && (c.compareTo(a) < 0));
     }
 
     public String state() {
@@ -253,7 +250,8 @@ public class Chord {
         return message;
     }
 
-    // TODO : These threads should be handled by a scheduled executor to avoid sleeps
+    // TODO : These threads should be handled by a scheduled executor to avoid
+    // sleeps
     public void initThreads() {
 
         Thread t1 = new Thread(new Runnable() {
@@ -282,8 +280,6 @@ public class Chord {
 
                 while (true) {
                     try {
-                        Chord.chordInstance.stabilize();
-                        Thread.sleep(FIX_FINGERS_INTERVAL_MS);
                         Chord.chordInstance.fixFingers();
                         Thread.sleep(FIX_FINGERS_INTERVAL_MS);
                     } catch (InterruptedException e) {
@@ -295,7 +291,13 @@ public class Chord {
             }
         });
 
-        // t1.start();
+        t1.start();
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         t2.start();
     }
 
