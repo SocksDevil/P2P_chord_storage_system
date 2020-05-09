@@ -24,7 +24,7 @@ public class Restore extends Action {
     @Override
     public String process() {
 
-        final ChunkResponse response = this.getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
+        final ChunkResponse response = getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
         if (response == null) {
             final String error = "File " + fileID + " not found";
             System.out.println(error);
@@ -38,7 +38,7 @@ public class Restore extends Action {
         for (int i = 1; i < response.getnChunks(); i++) {
             int chunkNo = i;
             BSDispatcher.servicePool.execute(() -> {
-                final ChunkResponse chunk = this.getChunk(fileID, chunkNo, response.getReplDegree());
+                final ChunkResponse chunk = getChunk(fileID, chunkNo, response.getReplDegree());
                 if (chunk == null) {
                     System.out.println("Couldn't retrieve chunk " + chunkNo + " of file " + fileID);
                     return;
@@ -63,9 +63,9 @@ public class Restore extends Action {
         return "Restored file";
     }
 
-    private ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
+    public static ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
         for (int replicator = 0; replicator < replDegree; replicator++) {
-            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileID, chunkNo),replicator);
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileId, chunkNo),replicator);
 
             GetChunkRequest getChunkRequest = new GetChunkRequest(fileId, chunkNo);
             

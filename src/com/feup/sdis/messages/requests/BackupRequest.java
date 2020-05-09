@@ -36,8 +36,6 @@ public class BackupRequest extends Request {
 
     @Override
     public Response handle() {
-
-
         System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
         if (!Store.instance().incrementSpace(this.chunkData.length)) {
             System.out.println("No space. TODO REDIRECT. " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
