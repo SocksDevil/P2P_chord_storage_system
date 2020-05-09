@@ -33,21 +33,15 @@ public class Peer {
         // return;
         // }
 
-        String hostAddress = args[0];
+        String peerPort = args[0];
         String peerID = args[1];
         String accessPoint = args[2];
 
 
-        if (!hostAddress.contains(":")) {
-            System.out.println("Hostname should be provided in the form ip:number");
-        }
 
-        String[] arguments = hostAddress.split(":");
-        String ip;
         int port;
         try {
-            ip = arguments[0];
-            port = Integer.parseInt(arguments[1]);
+            port = Integer.parseInt(peerPort);
         } catch (NumberFormatException nfe) {
             System.out.println("Port must be a number");
             return;
@@ -55,7 +49,6 @@ public class Peer {
 
         Constants.peerID = peerID;
         Constants.SENDER_ID = peerID;
-        Constants.SERVER_IP = ip;
         Constants.MAX_OCCUPIED_DISK_SPACE_MB = Integer.parseInt(args[3]) * Constants.MEGABYTE;
         Constants.peerRootFolder = Constants.peerParentFolder + "peer-" + peerID + "/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
@@ -75,6 +68,40 @@ public class Peer {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
+
+
+        BSDispatcher dispatcher = new BSDispatcher();
+        try {
+            final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
+            try {
+                LocateRegistry.createRegistry(Constants.RMI_PORT);
+            } catch (ExportException e) {
+            } // already exists
+            final Registry registry = LocateRegistry.getRegistry(Constants.RMI_PORT);
+            registry.rebind(accessPoint, stub);
+
+            System.out.println("Starting Peer " + Constants.SENDER_ID);
+            System.out.println("Peer " + Constants.SENDER_ID + " ready");
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+
+        // TODO: move this to a proper place:
+
+        Thread t1 = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                // TODO: port number está hardcoded
+                MessageListener messageListener = new MessageListener(port);
+                messageListener.receive();
+            }
+        });
+
+        t1.start();
 
         if (args.length == 5) {
 
@@ -103,26 +130,6 @@ public class Peer {
 
         Chord.chordInstance.initThreads();
 
-        BSDispatcher dispatcher = new BSDispatcher();
-        try {
-            final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
-            try {
-                LocateRegistry.createRegistry(Constants.RMI_PORT);
-            } catch (ExportException e) {
-            } // already exists
-            final Registry registry = LocateRegistry.getRegistry(Constants.RMI_PORT);
-            registry.rebind(accessPoint, stub);
-
-            System.out.println("Starting Peer " + Constants.SENDER_ID);
-            System.out.println("Peer " + Constants.SENDER_ID + " ready");
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        // TODO: port number está hardcoded
-        MessageListener messageListener = new MessageListener(port);
-        messageListener.receive();
 
     }
 }

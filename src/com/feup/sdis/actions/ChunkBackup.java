@@ -4,14 +4,11 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
-import com.feup.sdis.messages.requests.LookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
-import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
-import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.Peer;
 import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.Peer;
 
 public class ChunkBackup extends Action implements Runnable {
 
