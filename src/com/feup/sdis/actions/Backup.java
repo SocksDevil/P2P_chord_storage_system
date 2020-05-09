@@ -37,7 +37,6 @@ public class Backup extends Action {
         try {
             this.file = this.readFile();
             Store.instance().getBackedUpFiles().put(this.file.getfileID(), this.file);
-            Store.instance().getBackedUpFilesIds().put(this.filepath, this.file.getfileID());
 
         } catch (InvalidAttributeValueException | IOException e) {
             return e.getMessage();
