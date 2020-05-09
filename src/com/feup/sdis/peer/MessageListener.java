@@ -77,6 +77,7 @@ public class MessageListener {
     public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         Socket socket = null;
         try {
+
             socket = new Socket(destination.getIp(), destination.getPort());
             final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());

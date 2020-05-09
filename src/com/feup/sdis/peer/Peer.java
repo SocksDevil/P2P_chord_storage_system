@@ -76,6 +76,40 @@ public class Peer {
             e1.printStackTrace();
         }
 
+
+        BSDispatcher dispatcher = new BSDispatcher();
+        try {
+            final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
+            try {
+                LocateRegistry.createRegistry(Constants.RMI_PORT);
+            } catch (ExportException e) {
+            } // already exists
+            final Registry registry = LocateRegistry.getRegistry(Constants.RMI_PORT);
+            registry.rebind(accessPoint, stub);
+
+            System.out.println("Starting Peer " + Constants.SENDER_ID);
+            System.out.println("Peer " + Constants.SENDER_ID + " ready");
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+
+        // TODO: move this to a proper place:
+
+        Thread t1 = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                // TODO: port number está hardcoded
+                MessageListener messageListener = new MessageListener(port);
+                messageListener.receive();
+            }
+        });
+
+        t1.start();
+
         if (args.length == 5) {
 
             if (!args[4].contains(":")) {
@@ -103,26 +137,6 @@ public class Peer {
 
         Chord.chordInstance.initThreads();
 
-        BSDispatcher dispatcher = new BSDispatcher();
-        try {
-            final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
-            try {
-                LocateRegistry.createRegistry(Constants.RMI_PORT);
-            } catch (ExportException e) {
-            } // already exists
-            final Registry registry = LocateRegistry.getRegistry(Constants.RMI_PORT);
-            registry.rebind(accessPoint, stub);
-
-            System.out.println("Starting Peer " + Constants.SENDER_ID);
-            System.out.println("Peer " + Constants.SENDER_ID + " ready");
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        // TODO: port number está hardcoded
-        MessageListener messageListener = new MessageListener(port);
-        messageListener.receive();
 
     }
 }

@@ -91,7 +91,7 @@ public class Chord {
 
     public SocketAddress lookup(String chunkID, int repDegree ){
 
-       return this.findSuccessor( UUID.nameUUIDFromBytes(  StoredChunkInfo.getChunkID(chunkID, repDegree).getBytes()));
+       return this.findSuccessor( normalizeToSize(UUID.nameUUIDFromBytes(  StoredChunkInfo.getChunkID(chunkID, repDegree).getBytes()), this.FINGER_TABLE_SIZE) );
     }
 
     public SocketAddress findSuccessor(UUID key) {
