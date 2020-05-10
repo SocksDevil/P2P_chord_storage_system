@@ -1,73 +1,82 @@
 package com.feup.sdis.peer;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
-    
+
     private static final boolean DEBUG_MODE = false;
     private static final ExecutorService pool = Executors.newCachedThreadPool();
     private static int port;
 
-    public MessageListener(int port){
+    public MessageListener(int port) {
 
         this.port = port;
     }
 
-    public void receive(){
+    public void receive() {
 
-        final ServerSocket serverSocket;
+        final AsynchronousServerSocketChannel serverSocket;
         try {
-            serverSocket = new ServerSocket(port);
+            serverSocket = AsynchronousServerSocketChannel.open(AsynchronousChannelGroup.withCachedThreadPool(pool, 1));
+            serverSocket.bind(new InetSocketAddress(port));
         } catch (IOException e) {
             System.out.println("Failed to initialize server on port " + port);
             return;
         }
 
         while (true) {
-            final Socket socket;
-            try {
-                socket = serverSocket.accept();
-                pool.execute(() -> {
-                    try {
+            serverSocket.accept(null, new CompletionHandler<>() {
+                @Override
+                public void completed(AsynchronousSocketChannel socket, Object attachment) {
+                    if (serverSocket.isOpen())
+                        serverSocket.accept(null, this);
 
-                        final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                        final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                        Object messageObj = in.readObject();
-                        if (messageObj == null) {
-                            System.out.println("Message not received properly");
-                        } else {
+                    if(socket != null && socket.isOpen()){
+                        Request request = SerializationUtils.deserialize(socket);
+                        if (request == null)
+                            return;
 
-                            if(DEBUG_MODE)
-                                System.out.println("- IN  > " + messageObj + " from " + socket.getInetAddress() + ":" + socket.getPort());
-                            if (messageObj instanceof Request) {
+                        Response response = request.handle();
 
-                                Request request = (Request) messageObj;
-                                Response answer = request.handle();
-                                out.writeObject(answer);
-                                if(DEBUG_MODE)
-                                    System.out.println("- OUT > " + (answer != null ? answer : "-------") + " to " + socket.getInetAddress() + ":" + socket.getPort());
-                            }
+                        socket.write(SerializationUtils.serialize(response));
+
+                        try {
+                            socket.shutdownOutput();
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-
-                        socket.shutdownOutput();
-
-                        socket.close();
-                    } catch (IOException | ClassNotFoundException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
                     }
-                });
+                }
+
+                @Override
+                public void failed(Throwable throwable, Object att) {
+                    //TODO: handle failure
+                }
+            });
+            try {
+                System.in.read();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -75,35 +84,29 @@ public class MessageListener {
     }
 
     public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
-        Socket socket = null;
         try {
 
-            socket = new Socket(destination.getIp(), destination.getPort());
-            final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
+            Future<Void> future = socket.connect(new InetSocketAddress(destination.getIp(), destination.getPort()));
+            future.get();
 
-            out.writeObject(request);
-            if(DEBUG_MODE)
-                System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort() );
+            Future<Integer> writeResult = socket.write(SerializationUtils.serialize(request));
+            writeResult.get();
+
+            if (DEBUG_MODE)
+                System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort());
             socket.shutdownOutput();
-            T receivedMessage = (T) in.readObject();
-            
-            if(DEBUG_MODE)
+            T receivedMessage = SerializationUtils.deserialize(socket);
+
+            if (DEBUG_MODE)
                 System.out.println("* IN  > " + (receivedMessage != null ? receivedMessage : "-------") + " from " + destination.getIp() + ":" + destination.getPort());
 
-            // while (in.readLine() != null) {}
             socket.shutdownInput();
             socket.close();
 
             return receivedMessage;
-        }        
-        catch(SocketException ex){
+        } catch (IOException | InterruptedException | ExecutionException ex) {
             ex.printStackTrace();
-            return null;
-        } 
-        catch (IOException | ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
 
 

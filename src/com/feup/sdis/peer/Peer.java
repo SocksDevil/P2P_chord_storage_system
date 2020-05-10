@@ -6,6 +6,7 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
