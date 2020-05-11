@@ -1,7 +1,5 @@
 package com.feup.sdis.messages.requests.chord;
 
-import java.util.UUID;
-
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;

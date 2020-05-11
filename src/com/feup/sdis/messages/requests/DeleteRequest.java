@@ -2,7 +2,6 @@ package com.feup.sdis.messages.requests;
 
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
-import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.model.Store;
@@ -10,7 +9,6 @@ import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DeleteRequest extends Request {
     private final String fileID;

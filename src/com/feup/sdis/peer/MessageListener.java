@@ -74,11 +74,16 @@ public class MessageListener {
         }
     }
 
-    public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+    public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+                // System.out.println("* START > I'm here biatch " + destination.getIp() + ":" + destination.getPort() );
+
         Socket socket = null;
         try {
 
             socket = new Socket(destination.getIp(), destination.getPort());
+            // if(DEBUG_MODE)
+            //     System.out.println("* OPEN > Socket to " + destination.getIp() + ":" + destination.getPort() );
+
             final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 

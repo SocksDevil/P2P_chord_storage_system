@@ -24,6 +24,10 @@ public class RestoredFileInfo implements Serializable {
         return restoredChunks;
     }
 
+    public String getFileID(){
+        return this.fileID;
+    }
+
     public int getNChunks() {
         return nChunks;
     }

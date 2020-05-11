@@ -110,8 +110,8 @@ public class Chord {
 
     public void stabilize() {
 
-        if (DEBUG_MODE)
-            System.out.println("> CHORD: Stabilizing table");
+        // if (DEBUG_MODE)
+        //     System.out.println("> CHORD: Stabilizing table");
 
         SocketAddress successorsPerceivedPredecessorAddr = null;
 
