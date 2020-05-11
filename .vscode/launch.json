@@ -16,35 +16,35 @@
             "name": "Peer 2",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25567 2 metadias 3 127.0.0.1:25566"
+            "args": "25567 2 metadias 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 3",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25568 3 fellow_ooffer 3 127.0.0.1:25566"
+            "args": "25568 3 fellow_ooffer 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 4",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25569 5 motaengil 3 127.0.0.1:25566"
+            "args": "25569 5 motaengil 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 5",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25570 6 cunhacunha 3 127.0.0.1:25566"
+            "args": "25570 6 cunhacunha 3 127.0.0.1:25566"
         },
         {
             "type": "java",
             "name": "Peer 6",
             "request": "launch",
             "mainClass": "com.feup.sdis.peer.Peer",
-            "args": "127.0.0.1:25571 7 eduvidas 3 127.0.0.1:25566"
+            "args": "25571 7 eduvidas 3 127.0.0.1:25566"
         },
         {
             "type": "java",

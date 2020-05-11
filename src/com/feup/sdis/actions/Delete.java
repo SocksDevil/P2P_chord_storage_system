@@ -3,11 +3,11 @@ package com.feup.sdis.actions;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.DeleteRequest;
-import com.feup.sdis.messages.requests.GetResourceRequest;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
-import com.feup.sdis.messages.responses.GetResourceResponse;
-import com.feup.sdis.model.*;
+import com.feup.sdis.model.RestoredFileInfo;
+import com.feup.sdis.model.Store;
+import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
 

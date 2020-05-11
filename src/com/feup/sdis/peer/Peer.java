@@ -33,21 +33,15 @@ public class Peer {
         // return;
         // }
 
-        String hostAddress = args[0];
+        String peerPort = args[0];
         String peerID = args[1];
         String accessPoint = args[2];
 
 
-        if (!hostAddress.contains(":")) {
-            System.out.println("Hostname should be provided in the form ip:number");
-        }
 
-        String[] arguments = hostAddress.split(":");
-        String ip;
         int port;
         try {
-            ip = arguments[0];
-            port = Integer.parseInt(arguments[1]);
+            port = Integer.parseInt(peerPort);
         } catch (NumberFormatException nfe) {
             System.out.println("Port must be a number");
             return;
@@ -55,7 +49,6 @@ public class Peer {
 
         Constants.peerID = peerID;
         Constants.SENDER_ID = peerID;
-        Constants.SERVER_IP = ip;
         Constants.MAX_OCCUPIED_DISK_SPACE_MB = Integer.parseInt(args[3]) * Constants.MEGABYTE;
         Constants.peerRootFolder = Constants.peerParentFolder + "peer-" + peerID + "/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
