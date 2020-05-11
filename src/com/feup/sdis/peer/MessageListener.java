@@ -91,11 +91,12 @@ public class MessageListener {
             future.get();
 
             Future<Integer> writeResult = socket.write(SerializationUtils.serialize(request));
+            socket.shutdownOutput();
             writeResult.get();
 
             if (DEBUG_MODE)
                 System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort());
-            socket.shutdownOutput();
+
             T receivedMessage = SerializationUtils.deserialize(socket);
 
             if (DEBUG_MODE)

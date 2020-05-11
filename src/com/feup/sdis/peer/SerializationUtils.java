@@ -11,20 +11,29 @@ public class SerializationUtils {
     private static final int messageSize = Constants.BLOCK_SIZE * 2;
 
     public static <T> T deserialize(AsynchronousSocketChannel socket) {
+        byte[] data = new byte[messageSize];
+        int offset = 0;
         try {
-            ByteBuffer buffer = ByteBuffer.allocate(messageSize);
-            Future<Integer> readResult = socket.read(buffer);
-            readResult.get();
-            buffer.flip();
-            byte[] data = new byte[buffer.remaining()];
-            buffer.get(data);
+            while (true) {
+                ByteBuffer buffer = ByteBuffer.allocate(messageSize);
+                Future<Integer> readResult = socket.read(buffer);
+                readResult.get();
+                buffer.flip();
+                int addingOffset = buffer.remaining();
+                if (addingOffset <= 0) {
+                    ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+                    ObjectInputStream in = new ObjectInputStream(inputStream);
+                    return (T) in.readObject();
+                }
 
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-            ObjectInputStream in = new ObjectInputStream(inputStream);
-            return (T) in.readObject();
+                byte[] byteBuffer = new byte[addingOffset];
+                buffer.get(byteBuffer);
+                System.arraycopy(byteBuffer, 0, data, offset, addingOffset);
+                offset += addingOffset;
+            }
+
         } catch (IOException | ClassNotFoundException | InterruptedException | ExecutionException e) {
             System.out.println("Failed to deserialize object!");
-            e.printStackTrace();
             return null;
         }
     }
