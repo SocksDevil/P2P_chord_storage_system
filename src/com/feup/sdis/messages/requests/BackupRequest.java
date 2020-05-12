@@ -39,6 +39,10 @@ public class BackupRequest extends Request {
         // Space is already "reserved"
         StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
                 chunkData.length, nChunks, originalFilename);
+        // If placeholder is not there, file deleted -> don't save
+        if(!Store.instance().getStoredFiles().containsKey(newChunk.getChunkID()))
+            // TODO: mudar para Status.FILE_DELETED or smt
+            return new BackupResponse(Status.ERROR);
         Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);
         System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 

@@ -32,17 +32,17 @@ public class LookupRequest extends Request {
 
     @Override
     public Response handle() {
-        System.out.println("<" + StoredChunkInfo.getChunkID(fileID, chunkNo) + "> - " + currReplication);
+        System.out.println("<" + StoredChunkInfo.getChunkID(fileID, chunkNo) + "> - " + currReplication + " red " + redirected);
 
         // System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkLength + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
         // If it already has this chunk || doesn't have enough space ->
-        boolean isStored = false;
+        boolean isStored = true;
         synchronized(Store.instance().getStoredFiles()){
             if(!Store.instance().getStoredFiles().containsKey(StoredChunkInfo.getChunkID(fileID, chunkNo))){
                 // TODO: depois ver o que se por no 2º para se o restore chegar a meio a resposta adequada ser enviada
                 // Talvez aqui sim por um either
                 Store.instance().getStoredFiles().put(StoredChunkInfo.getChunkID(fileID, chunkNo), new StoredChunkInfo(fileID, chunkNo, chunkLength));
-                isStored = true;
+                isStored = false;
             }
         }
 
@@ -58,12 +58,6 @@ public class LookupRequest extends Request {
                 // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
                 return new LookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
-
-            // Responsible peer save redirect
-            if(!this.redirected){
-                Store.instance().getReplCount().addNewID(StoredChunkInfo.getChunkID(fileID, chunkNo), Peer.addressInfo, this.currReplication);
-            }
-
             System.out.println("> LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + StoredChunkInfo.getChunkID(fileID, chunkNo) + " rep " + currReplication);
             
             // Get successor
@@ -80,6 +74,11 @@ public class LookupRequest extends Request {
             if (lookupRequestAnswer.getStatus() == Status.NO_SPACE) {
                 System.out.println("> LOOKUP: No space available for " + chunkNo + " of file " + fileID);
                 return new LookupResponse(Status.NO_SPACE, Peer.addressInfo);
+            }
+
+            // Responsible peer save redirect
+            if(!this.redirected){
+                Store.instance().getReplCount().addNewID(StoredChunkInfo.getChunkID(fileID, chunkNo), lookupRequestAnswer.getAddress(), this.currReplication);
             }
 
             // Successfully found
