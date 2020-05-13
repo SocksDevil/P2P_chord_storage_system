@@ -56,7 +56,8 @@ public class ChunkBackup extends Action implements Runnable {
 
         // System.out.println("Backing up " + chunkNo + " of file " + fileID + " with rep " + repID + " to " + lookupRequestAnswer.getAddress());
 
-        final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData, lookupRequestAnswer.getAddress(), nChunks, originalFilename);
+        final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
+                lookupRequestAnswer.getAddress(), nChunks, originalFilename, Peer.addressInfo);
 
         final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
         if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {

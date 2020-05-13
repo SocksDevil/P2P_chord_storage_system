@@ -1,5 +1,6 @@
 package com.feup.sdis.model;
 
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.peer.Constants;
 
 import java.io.*;
@@ -12,15 +13,18 @@ public class StoredChunkInfo implements Serializable {
     final int chunkSize;
     private int nChunks;
     private String originalFilename;
+    private SocketAddress initiatorPeer;
 
     public StoredChunkInfo(String fileID, int desiredReplicationDegree,
-                           int chunkNo, int chunkSize, int nChunks, String originalFilename) {
+                           int chunkNo, int chunkSize, int nChunks,
+                           String originalFilename, SocketAddress initiatorPeer) {
         this.fileID = fileID;
         this.desiredReplicationDegree = desiredReplicationDegree;
         this.chunkNo = chunkNo;
         this.chunkSize = chunkSize;
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
+        this.initiatorPeer = initiatorPeer;
     }
 
     public StoredChunkInfo(String fileID, int chunkNo, int chunkSize) {
@@ -67,5 +71,9 @@ public class StoredChunkInfo implements Serializable {
 
     public String getChunkID(){
         return StoredChunkInfo.getChunkID(fileID, chunkNo);
+    }
+
+    public SocketAddress getInitiatorPeer() {
+        return initiatorPeer;
     }
 }

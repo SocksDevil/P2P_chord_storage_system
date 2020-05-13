@@ -27,18 +27,20 @@ public class DeleteRequest extends Request {
     public Response handle() {
         final Store store = Store.instance();
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        if (!store.getStoredFiles().containsKey(chunkID) ||
-                store.getReplCount().getRepDegree(chunkID, replNo) != Peer.addressInfo) { // must delete in redirects
-            final SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
-            if (redirectAddress == null) {
+
+        final SocketAddress chunkOwner = store.getReplCount().getRepDegree(chunkID, replNo);
+        store.getReplCount().removeRepDegree(chunkID, replNo);
+
+        if (!store.getStoredFiles().containsKey(chunkID) || chunkOwner != Peer.addressInfo) { // must delete in redirects
+            if (chunkOwner == null) {
                 System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
                 return new DeleteResponse(Status.FILE_NOT_FOUND, fileID, chunkNo, replNo);
             }
 
-            System.out.println("> DELETE: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
+            System.out.println("> DELETE: Redirect to " + chunkOwner + " - " + chunkID + " rep " + replNo);
 
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
-            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, redirectAddress);
+            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, chunkOwner);
 
             if (deleteResponse == null || deleteRequest.getConnection() == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
@@ -59,10 +61,7 @@ public class DeleteRequest extends Request {
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
         store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
         store.getStoredFiles().remove(chunkID);
-        store.getBackedUpFiles().remove(chunkID);
         store.getBackedUpFiles().remove(fileID);
-
-        // TODO may need to delete repl count in the future if it is used
 
         Status returnStatus = Status.SUCCESS;
         final File fileToDelete = new File(Constants.backupFolder + chunkID);

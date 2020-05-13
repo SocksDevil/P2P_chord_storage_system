@@ -1,6 +1,9 @@
 package com.feup.sdis.messages.responses;
 
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
+import com.feup.sdis.model.BackupFileInfo;
+import com.feup.sdis.model.StoredChunkInfo;
 
 
 public class ChunkInfoResponse extends Response {
@@ -9,14 +12,27 @@ public class ChunkInfoResponse extends Response {
     private final int replDegree;
     private final int nChunks;
     private final String originalFilename;
+    private final SocketAddress initiatorPeer;
 
-    public ChunkInfoResponse(String fileID, int chunkNo, int replDegree, int nChunks, String originalFilename) {
+    public ChunkInfoResponse(String fileID, int chunkNo, int replDegree, int nChunks,
+                             String originalFilename, SocketAddress initiatorPeer) {
         super(Status.SUCCESS);
         this.fileID = fileID;
         this.chunkNo = chunkNo;
         this.replDegree = replDegree;
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
+        this.initiatorPeer = initiatorPeer;
+    }
+
+    public ChunkInfoResponse(StoredChunkInfo fileInfo) {
+        super(Status.SUCCESS);
+        this.fileID = fileInfo.getFileID();
+        this.chunkNo = fileInfo.getChunkNo();
+        this.replDegree = fileInfo.getDesiredReplicationDegree();
+        this.nChunks = fileInfo.getnChunks();
+        this.originalFilename = fileInfo.getOriginalFilename();
+        this.initiatorPeer = fileInfo.getInitiatorPeer();
     }
 
     public ChunkInfoResponse(Status status, String fileID, int chunkNo) {
@@ -26,6 +42,7 @@ public class ChunkInfoResponse extends Response {
         this.originalFilename = null;
         this.replDegree = -1;
         this.nChunks = -1;
+        this.initiatorPeer = null;
     }
 
     public String getFileID() {
@@ -42,6 +59,10 @@ public class ChunkInfoResponse extends Response {
 
     public int getReplDegree() {
         return replDegree;
+    }
+
+    public SocketAddress getInitiatorPeer() {
+        return initiatorPeer;
     }
 
     @Override

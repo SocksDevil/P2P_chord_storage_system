@@ -25,10 +25,7 @@ public class GetChunkInfoRequest extends Request {
         }
 
         final StoredChunkInfo storedChunkInfo = Store.instance().getStoredFiles().get(chunkID);
-        return new ChunkInfoResponse(fileID, chunkNo,
-                storedChunkInfo.getDesiredReplicationDegree(), storedChunkInfo.getnChunks(),
-                storedChunkInfo.getOriginalFilename());
-
+        return new ChunkInfoResponse(storedChunkInfo);
     }
 
     @Override

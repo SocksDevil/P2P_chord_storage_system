@@ -12,17 +12,19 @@ import com.feup.sdis.peer.Constants;
 
 public class BackupRequest extends Request {
 
-    private String fileID;
-    private int chunkNo;
-    private int desiredRepDegree;
-    private SocketAddress connection;
+    private final String fileID;
+    private final int chunkNo;
+    private final int desiredRepDegree;
+    private final SocketAddress connection;
     private final int nChunks;
     private final String originalFilename;
+    private final SocketAddress initiatorPeer;
 
     private byte[] chunkData;
 
     public BackupRequest(String fileID, int chunkNo, int desiredRepDegree,
-                         byte[] data, SocketAddress connection, int nChunks, String originalFilename) {
+                         byte[] data, SocketAddress connection, int nChunks,
+                         String originalFilename, SocketAddress initiatorPeer) {
 
         this.fileID = fileID;
         this.chunkNo = chunkNo;
@@ -32,13 +34,14 @@ public class BackupRequest extends Request {
         // this.repDegree = Integer.parseInt(args[2]);
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
+        this.initiatorPeer = initiatorPeer;
     }
 
     @Override
     public Response handle() {
         // Space is already "reserved"
         final StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
-                chunkData.length, nChunks, originalFilename);
+                chunkData.length, nChunks, originalFilename, initiatorPeer);
         // If placeholder is not there, file deleted -> don't save
         if(!Store.instance().getStoredFiles().containsKey(newChunk.getChunkID()))
             // TODO: mudar para Status.FILE_DELETED or smt
