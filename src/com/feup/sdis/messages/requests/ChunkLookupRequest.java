@@ -29,15 +29,21 @@ public class ChunkLookupRequest extends Request {
         final Store store = Store.instance();
 
         SocketAddress peerWithChunk = Peer.addressInfo;
-        if (!store.getStoredFiles().containsKey(chunkID)) { // may contain placeholder
+        if (!store.getStoredFiles().containsKey(chunkID) ||
+                store.getReplCount().getRepDegree(chunkID, replNo) != Peer.addressInfo) { // TODO may contain placeholder, handle this somewhere
             final SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
+            if (redirectAddress == null) {
+                System.out.println("> CHUNK LOOKUP: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
+                return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);
+            }
+
             System.out.println("> CHUNK LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
 
             final ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, redirectAddress);
             final ChunkLookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, redirectAddress);
 
             if (redirectAnswer == null || redirectAnswer.getAddress() == null) {
-                System.err.println("Received null in lookup response: searching for chunk " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
+                System.err.println("> CHUNK LOOKUP: Received null when searching for chunk " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
                 return new ChunkLookupResponse(Status.ERROR, Peer.addressInfo);
             }
 
