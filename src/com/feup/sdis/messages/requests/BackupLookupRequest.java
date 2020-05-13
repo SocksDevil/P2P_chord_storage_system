@@ -30,7 +30,7 @@ public class BackupLookupRequest extends Request {
 
     @Override
     public Response handle() {
-        String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         System.out.println("<" + chunkID + "> - " + currReplication + " red " + redirected);
 
         // System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkLength + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
@@ -56,17 +56,17 @@ public class BackupLookupRequest extends Request {
             if(Store.instance().getReplCount().containsRepDegree(chunkID, this.currReplication)){
 
                 // If it was the responsible (final == beginning), removes the redirect entry
-                System.out.println("> LOOKUP: Failed  " + chunkNo + " of file " + fileID);
+                System.out.println("> BACKUP LOOKUP: Failed  " + chunkNo + " of file " + fileID);
 
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
                 // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
-            System.out.println("> LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + chunkID + " rep " + currReplication);
+            System.out.println("> BACKUP LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + chunkID + " rep " + currReplication);
             
             // Get successor
-            BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSucessor(), this.chunkLength, true);
-            BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+            final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSucessor(), this.chunkLength, true);
+            final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
             // This should never happen
             if(lookupRequestAnswer == null ){
@@ -76,7 +76,7 @@ public class BackupLookupRequest extends Request {
 
             // System has no available space
             if (lookupRequestAnswer.getStatus() == Status.NO_SPACE) {
-                System.out.println("> LOOKUP: No space available for " + chunkNo + " of file " + fileID);
+                System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
 
@@ -86,11 +86,11 @@ public class BackupLookupRequest extends Request {
             }
 
             // Successfully found
-            System.out.println("> LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
+            System.out.println("> BACKUP LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
             return lookupRequestAnswer;
         }
 
-        System.out.println("> LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
+        System.out.println("> BACKUP LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
         return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
     }
 

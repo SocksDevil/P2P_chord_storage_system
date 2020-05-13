@@ -42,11 +42,11 @@ public class ChunkBackup extends Action implements Runnable {
     @Override
     String process() {
 
-        String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
-        
-        BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
-        BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+
+        final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
+        final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
             System.out.println("Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID);
@@ -56,9 +56,9 @@ public class ChunkBackup extends Action implements Runnable {
 
         // System.out.println("Backing up " + chunkNo + " of file " + fileID + " with rep " + repID + " to " + lookupRequestAnswer.getAddress());
 
-        BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData, lookupRequestAnswer.getAddress(), nChunks, originalFilename);
+        final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData, lookupRequestAnswer.getAddress(), nChunks, originalFilename);
 
-        BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
+        final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
         if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
             // System.out.println("Successfully stored chunk " + chunkNo + " of file " + fileID + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
             System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());

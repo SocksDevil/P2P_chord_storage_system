@@ -37,7 +37,7 @@ public class BackupRequest extends Request {
     @Override
     public Response handle() {
         // Space is already "reserved"
-        StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
+        final StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
                 chunkData.length, nChunks, originalFilename);
         // If placeholder is not there, file deleted -> don't save
         if(!Store.instance().getStoredFiles().containsKey(newChunk.getChunkID()))

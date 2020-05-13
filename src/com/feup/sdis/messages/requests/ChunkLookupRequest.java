@@ -25,30 +25,32 @@ public class ChunkLookupRequest extends Request {
 
     @Override
     public Response handle() {
-        String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        Store store = Store.instance();
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        final Store store = Store.instance();
 
         SocketAddress peerWithChunk = Peer.addressInfo;
-        Status status = Status.SUCCESS;
-        if (!store.getStoredFiles().containsKey(chunkID)) {
-            SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
-            System.out.println("> LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
+        if (!store.getStoredFiles().containsKey(chunkID)) { // may contain placeholder
+            final SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
+            System.out.println("> CHUNK LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
 
-            ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, redirectAddress);
-            ChunkLookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, redirectAddress);
+            final ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, redirectAddress);
+            final ChunkLookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, redirectAddress);
 
             if (redirectAnswer == null || redirectAnswer.getAddress() == null) {
                 System.err.println("Received null in lookup response: searching for chunk " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
-                return null;
+                return new ChunkLookupResponse(Status.ERROR, Peer.addressInfo);
+            }
+
+            if (redirectAnswer.getStatus() == Status.ERROR || redirectAnswer.getStatus() == Status.FILE_NOT_FOUND) {
+                System.out.println("> CHUNK LOOKUP: Did not find chunk " + chunkNo + " of file " + fileID);
+                return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);
             }
 
             peerWithChunk = redirectAnswer.getAddress();
         }
 
-        if (status == Status.SUCCESS)
-            System.out.println("> LOOKUP: Success! Found " + peerWithChunk + " for " + chunkID + " rep " + replNo);
-
-        return new ChunkLookupResponse(status, peerWithChunk);
+        System.out.println("> CHUNK LOOKUP: Success! Found " + peerWithChunk + " for " + chunkID + " rep " + replNo);
+        return new ChunkLookupResponse(Status.SUCCESS, peerWithChunk);
     }
 
     @Override

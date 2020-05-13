@@ -2,8 +2,10 @@ package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
+import com.feup.sdis.messages.requests.ChunkLookupRequest;
 import com.feup.sdis.messages.requests.DeleteRequest;
 import com.feup.sdis.messages.responses.ChunkInfoResponse;
+import com.feup.sdis.messages.responses.ChunkLookupResponse;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.model.RestoredFileInfo;
@@ -11,6 +13,7 @@ import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.Peer;
 
 public class Delete extends Action {
     private final String fileID;
@@ -36,12 +39,15 @@ public class Delete extends Action {
                 int chunkNumber = chunkNo;
                 int replicationDegree = replDegree;
                 BSDispatcher.servicePool.execute(() -> {
+                    final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
 
-                    String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
-                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,replicationDegree);
+                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,replicationDegree); // get assigned peer
+                    final ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNumber, replicationDegree, Peer.addressInfo); // resolve redirects
+                    final ChunkLookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+                    final SocketAddress peerWithChunk = lookupResponse.getAddress();
 
-                    DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber);
-                    DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest,addressInfo);
+                    final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber);
+                    final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, peerWithChunk);
 
                     if (deleteResponse == null) {
                         System.out.println("Could not read DELETE response for chunk " + chunkNumber);
@@ -50,10 +56,10 @@ public class Delete extends Action {
 
                     switch (deleteResponse.getStatus()) {
                         case SUCCESS:
-                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString());
+                            System.out.println("Deleted chunk " + chunkNumber + " from " + peerWithChunk.toString());
                             break;
                         case FILE_NOT_FOUND:
-                            System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
+                            System.out.println("Chunk " + chunkNumber + " was not present in " + peerWithChunk.toString());
                             break;
                         default:
                             System.out.println("Could not retrieve chunk " + chunkNumber + ", got error " + deleteResponse.getStatus());
