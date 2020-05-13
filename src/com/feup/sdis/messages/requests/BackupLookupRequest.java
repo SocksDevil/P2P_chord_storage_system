@@ -3,7 +3,7 @@ package com.feup.sdis.messages.requests;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
-import com.feup.sdis.messages.responses.LookupResponse;
+import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
@@ -60,13 +60,13 @@ public class BackupLookupRequest extends Request {
 
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
                 // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
-                return new LookupResponse(Status.NO_SPACE, Peer.addressInfo);
+                return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
             System.out.println("> LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + chunkID + " rep " + currReplication);
             
             // Get successor
             BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSucessor(), this.chunkLength, true);
-            LookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+            BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
             // This should never happen
             if(lookupRequestAnswer == null ){
@@ -77,7 +77,7 @@ public class BackupLookupRequest extends Request {
             // System has no available space
             if (lookupRequestAnswer.getStatus() == Status.NO_SPACE) {
                 System.out.println("> LOOKUP: No space available for " + chunkNo + " of file " + fileID);
-                return new LookupResponse(Status.NO_SPACE, Peer.addressInfo);
+                return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
 
             // Responsible peer save redirect
@@ -91,7 +91,7 @@ public class BackupLookupRequest extends Request {
         }
 
         System.out.println("> LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
-        return new LookupResponse(Status.SUCCESS, Peer.addressInfo);
+        return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class BackupLookupRequest extends Request {
     
     @Override
     public String toString() {
-        return "LookupRequest{" +
+        return "BackupLookupRequest{" +
                 "fileID='" + fileID + '\'' +
                 ", chunkNo=" + chunkNo +
                 ", currReplication=" + currReplication +

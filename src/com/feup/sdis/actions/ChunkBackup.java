@@ -6,7 +6,7 @@ import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
 import com.feup.sdis.messages.requests.BackupLookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
-import com.feup.sdis.messages.responses.LookupResponse;
+import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
@@ -46,7 +46,7 @@ public class ChunkBackup extends Action implements Runnable {
         final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
         
         BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
-        LookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+        BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
             System.out.println("Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID);

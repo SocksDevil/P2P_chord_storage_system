@@ -3,6 +3,7 @@ package com.feup.sdis.actions;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.DeleteRequest;
+import com.feup.sdis.messages.responses.ChunkInfoResponse;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.model.RestoredFileInfo;
@@ -20,7 +21,7 @@ public class Delete extends Action {
 
     @Override
     public String process() {
-        final ChunkResponse response = Restore.getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
+        final ChunkInfoResponse response = Restore.getChunkInfo(fileID, 0, Constants.MAX_REPL_DEGREE);
         if (response == null) {
             final String error = "File " + fileID + " not found";
             System.out.println(error);

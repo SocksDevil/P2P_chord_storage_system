@@ -3,11 +3,11 @@ package com.feup.sdis.messages.responses;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 
-public class LookupResponse extends Response {
+public class ChunkLookupResponse extends Response {
 
     private final SocketAddress address;
-    
-    public LookupResponse(Status status, SocketAddress address) {
+
+    public ChunkLookupResponse(Status status, SocketAddress address) {
         super(status);
         this.address = address;
     }
@@ -18,7 +18,7 @@ public class LookupResponse extends Response {
 
     @Override
     public String toString(){
-        return "LOOKUP: " + this.address + " STATUS: " + this.getStatus();
+        return "CHUNK LOOKUP: " + this.address + " STATUS: " + this.getStatus();
     }
-    
+
 }

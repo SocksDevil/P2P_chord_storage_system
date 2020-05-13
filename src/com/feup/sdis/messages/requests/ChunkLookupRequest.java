@@ -3,7 +3,7 @@ package com.feup.sdis.messages.requests;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
-import com.feup.sdis.messages.responses.LookupResponse;
+import com.feup.sdis.messages.responses.ChunkLookupResponse;
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
@@ -31,11 +31,11 @@ public class ChunkLookupRequest extends Request {
         SocketAddress peerWithChunk = Peer.addressInfo;
         Status status = Status.SUCCESS;
         if (!store.getStoredFiles().containsKey(chunkID)) {
-            SocketAddress successor = Chord.chordInstance.getSucessor();
-            System.out.println("> LOOKUP: Redirect to " + successor + " - " + chunkID + " rep " + replNo);
+            SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
+            System.out.println("> LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
 
-            ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, successor);
-            LookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, successor);
+            ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, redirectAddress);
+            ChunkLookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, redirectAddress);
 
             if (redirectAnswer == null || redirectAnswer.getAddress() == null) {
                 System.err.println("Received null in lookup response: searching for chunk " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
@@ -48,7 +48,7 @@ public class ChunkLookupRequest extends Request {
         if (status == Status.SUCCESS)
             System.out.println("> LOOKUP: Success! Found " + peerWithChunk + " for " + chunkID + " rep " + replNo);
 
-        return new LookupResponse(status, peerWithChunk);
+        return new ChunkLookupResponse(status, peerWithChunk);
     }
 
     @Override
