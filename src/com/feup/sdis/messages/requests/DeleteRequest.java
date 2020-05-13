@@ -27,11 +27,14 @@ public class DeleteRequest extends Request {
     public Response handle() {
         final Store store = Store.instance();
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
         final SocketAddress chunkOwner = store.getReplCount().getRepDegree(chunkID, replNo);
         store.getReplCount().removeRepDegree(chunkID, replNo);
 
-        if (!store.getStoredFiles().containsKey(chunkID) || chunkOwner != Peer.addressInfo) { // must delete in redirects
+        System.out.println("(" + chunkNo + "," + replNo + ") - (" + store.getStoredFiles().containsKey(chunkID) +
+                ", " + chunkOwner + ", " + Peer.addressInfo + ")");
+        if (!store.getStoredFiles().containsKey(chunkID) || !chunkOwner.equals(Peer.addressInfo)) { // must delete in redirects
             if (chunkOwner == null) {
                 System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
                 return new DeleteResponse(Status.FILE_NOT_FOUND, fileID, chunkNo, replNo);

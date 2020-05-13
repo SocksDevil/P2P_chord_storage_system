@@ -53,6 +53,7 @@ public class Delete extends Action {
 
                     final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
                     final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
+                    System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
                     final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
                     if (deleteResponse == null) {
@@ -62,13 +63,14 @@ public class Delete extends Action {
 
                     switch (deleteResponse.getStatus()) {
                         case SUCCESS:
-                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString());
+                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
                             break;
                         case FILE_NOT_FOUND:
                             System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
                             break;
                         default:
-                            System.out.println("Could not retrieve chunk " + chunkNumber + ", got error " + deleteResponse.getStatus());
+                            System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
+                                    ", got error " + deleteResponse.getStatus());
                     }
                 });
             }

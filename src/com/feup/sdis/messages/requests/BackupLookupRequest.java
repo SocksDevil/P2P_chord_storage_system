@@ -63,6 +63,11 @@ public class BackupLookupRequest extends Request {
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
             System.out.println("> BACKUP LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + chunkID + " rep " + currReplication);
+
+            // Responsible peer save redirect
+            if(!this.redirected){
+                Store.instance().getReplCount().addNewID(chunkID, null, this.currReplication);
+            }
             
             // Get successor
             final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSucessor(), this.chunkLength, true);
@@ -74,15 +79,16 @@ public class BackupLookupRequest extends Request {
                 return null;
             }
 
+            // Responsible peer save redirect
+            if(!this.redirected){
+                Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
+                Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
+            }
+
             // System has no available space
             if (lookupRequestAnswer.getStatus() == Status.NO_SPACE) {
                 System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
-            }
-
-            // Responsible peer save redirect
-            if(!this.redirected){
-                Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
             }
 
             // Successfully found
@@ -91,6 +97,7 @@ public class BackupLookupRequest extends Request {
         }
 
         System.out.println("> BACKUP LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
+        Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, currReplication);
         return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
     }
 
