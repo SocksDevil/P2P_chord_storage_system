@@ -3,12 +3,16 @@ package com.feup.sdis.actions;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.ChunkLookupRequest;
 import com.feup.sdis.messages.requests.GetChunkRequest;
 import com.feup.sdis.messages.responses.ChunkResponse;
+import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.RestoredFileInfo;
+import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.Peer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -63,13 +67,17 @@ public class Restore extends Action {
         return "Restored file";
     }
 
-    public static ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
+    public static ChunkResponse getChunk(String fileID, int chunkNo, int replDegree) {
         for (int replicator = 0; replicator < replDegree; replicator++) {
-            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileId, chunkNo),replicator);
+            String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
 
-            GetChunkRequest getChunkRequest = new GetChunkRequest(fileId, chunkNo);
-            
-            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest,addressInfo);
+            // find peer that has chunk
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replicator); // get assigned peer
+            ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNo, replicator, Peer.addressInfo); // resolve redirects
+            LookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+
+            GetChunkRequest getChunkRequest = new GetChunkRequest(fileID, chunkNo);
+            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);

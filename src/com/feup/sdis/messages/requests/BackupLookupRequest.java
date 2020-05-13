@@ -47,7 +47,12 @@ public class BackupLookupRequest extends Request {
 
         // TODO: make sure that if -> 1 || 2 if 1 is True; 2 is NOT evaluated
         if(isStored || !Store.instance().incrementSpace(this.chunkLength)){
-            // Back to the beginning
+
+            // Remove placeholder if no space for chunk
+            if(!isStored)
+                Store.instance().getStoredFiles().remove(chunkID);
+
+            // Back to the beginning, traversed a full chord cycle
             if(Store.instance().getReplCount().containsRepDegree(chunkID, this.currReplication)){
 
                 // If it was the responsible (final == beginning), removes the redirect entry

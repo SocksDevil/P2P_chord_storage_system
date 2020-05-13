@@ -18,7 +18,6 @@ public class GetChunkRequest extends Request {
         this.chunkNo = chunkNo;
     }
 
-
     @Override
     public Response handle() {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);

@@ -43,7 +43,7 @@ public class ChunkBackup extends Action implements Runnable {
     String process() {
 
         String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,repID);
+        final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
         
         BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
         LookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
