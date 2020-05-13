@@ -1,17 +1,14 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.GetChunkRequest;
-import com.feup.sdis.messages.requests.GetResourceRequest;
-import com.feup.sdis.messages.requests.LookupRequest;
 import com.feup.sdis.messages.responses.ChunkResponse;
-import com.feup.sdis.messages.responses.GetResourceResponse;
-import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.RestoredFileInfo;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.Peer;
+import com.feup.sdis.peer.MessageListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -68,20 +65,11 @@ public class Restore extends Action {
 
     public static ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
         for (int replicator = 0; replicator < replDegree; replicator++) {
-            GetResourceRequest lookupRequest = new GetResourceRequest(StoredChunkInfo.getChunkID(fileId, chunkNo)
-                    , replicator);
-
-            GetResourceResponse lookupResponse = sendMessage(lookupRequest,
-                    new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
-
-            if (lookupResponse == null || lookupResponse.getAddress() == null) {
-                System.out.println("Null lookup response");
-                continue;
-            }
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileId, chunkNo),replicator);
 
             GetChunkRequest getChunkRequest = new GetChunkRequest(fileId, chunkNo);
-
-            ChunkResponse chunkResponse = sendMessage(getChunkRequest, lookupResponse.getAddress());
+            
+            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest,addressInfo);
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);

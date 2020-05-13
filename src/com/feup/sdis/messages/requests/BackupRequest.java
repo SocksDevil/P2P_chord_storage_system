@@ -1,7 +1,6 @@
 package com.feup.sdis.messages.requests;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
@@ -43,7 +42,6 @@ public class BackupRequest extends Request {
             return new BackupResponse(Status.NO_SPACE);
         }
 
-        System.out.println("Dps do if");
         StoredChunkInfo newChunk = new StoredChunkInfo(fileID, desiredRepDegree, chunkNo,
                 chunkData.length, nChunks, originalFilename);
         Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);

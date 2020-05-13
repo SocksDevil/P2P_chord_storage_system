@@ -2,12 +2,11 @@ package com.feup.sdis.peer;
 
 import java.io.*;
 
-import com.feup.sdis.chord.Chord;
 
 public class Server {
 
     // TODO: depois ver isto
-    public static final Chord chord = new Chord();
+    // public static final Chord chord = new Chord();
 
     public static void main(String[] args) {
         if (args.length != 1) {

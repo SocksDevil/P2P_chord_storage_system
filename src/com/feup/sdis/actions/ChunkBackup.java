@@ -1,14 +1,13 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
-import com.feup.sdis.messages.requests.LookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
-import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
-import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;
 
 public class ChunkBackup extends Action implements Runnable {
@@ -20,6 +19,7 @@ public class ChunkBackup extends Action implements Runnable {
     private final int nChunks;
     private final int replDegree;
     private final String originalFilename;
+    private final int MAX_TRIES = 3;
 
     public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData, int nChunks, int replDegree, String originalFilename) {
 
@@ -43,21 +43,10 @@ public class ChunkBackup extends Action implements Runnable {
 
         for (int i = 0; i < this.MAX_TRIES; i++) {
 
-            // -- TODO: This will change because of Chord
-            LookupRequest lookupRequest = new LookupRequest(StoredChunkInfo.getChunkID(this.fileID, this.chunkNo),
-                    this.repID, Peer.addressInfo);
-            LookupResponse lookupRequestAnswer = this.sendMessage(lookupRequest,
-                    new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
-            // --
-            if (lookupRequestAnswer == null) {
-                System.out.println("Did not receive lookup answer");
-                continue;
-            }
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileID, chunkNo),repID);
+            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData, addressInfo, nChunks, originalFilename);
 
-            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
-                    lookupRequestAnswer.getAddress(), nChunks, originalFilename);
-
-            BackupResponse backupRequestAnswer = this.sendMessage(backupRequest, backupRequest.getConnection());
+            BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
             if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
                 System.out.println("Successfully stored chunk " + chunkNo + " of file " + fileID);
                 Store.instance().getReplCount().addNewID(StoredChunkInfo.getChunkID(fileID, chunkNo),

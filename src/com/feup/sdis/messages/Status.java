@@ -4,5 +4,6 @@ public enum Status {
     SUCCESS,
     FILE_NOT_FOUND,
     NO_SPACE,
-    ERROR
+    ERROR,
+    UNCHANGED
 }

@@ -1,5 +1,6 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.model.BackupFileInfo;
 import com.feup.sdis.model.SerializableHashMap;
 import com.feup.sdis.model.Store;
@@ -39,6 +40,8 @@ public class State extends Action {
             message += "    > desired replication degree: " + entry.getValue().getDesiredReplicationDegree() + "\n";
             message += "    > perceived replication degree: " + Store.instance().getReplCount().getSize(entry.getKey()) + "\n";
         }
+
+        message += Chord.chordInstance.state();
 
         // TODO: Change this according to the model used for the disk space
 /*        int maxDiskSpace = Store.instance().getMaxDiskSpace();

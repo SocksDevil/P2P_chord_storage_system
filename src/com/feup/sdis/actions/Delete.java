@@ -1,13 +1,15 @@
 package com.feup.sdis.actions;
 
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.DeleteRequest;
-import com.feup.sdis.messages.requests.GetResourceRequest;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
-import com.feup.sdis.messages.responses.GetResourceResponse;
-import com.feup.sdis.model.*;
+import com.feup.sdis.model.RestoredFileInfo;
+import com.feup.sdis.model.Store;
+import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 
 public class Delete extends Action {
     private final String fileID;
@@ -35,16 +37,10 @@ public class Delete extends Action {
                 BSDispatcher.servicePool.execute(() -> {
 
                     String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
-                    GetResourceRequest lookupRequest = new GetResourceRequest(chunkID, replicationDegree);
-                    GetResourceResponse lookupResponse = sendMessage(lookupRequest,
-                            new SocketAddress(Constants.SERVER_IP, Constants.SERVER_PORT));
+                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,replicationDegree);
 
-                    if (lookupResponse == null || lookupResponse.getAddress() == null) {
-                        System.out.println("Null lookup response");
-                        return;
-                    }
                     DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber);
-                    DeleteResponse deleteResponse = sendMessage(deleteRequest, lookupResponse.getAddress());
+                    DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest,addressInfo);
 
                     if (deleteResponse == null) {
                         System.out.println("Could not read DELETE response for chunk " + chunkNumber);
@@ -53,10 +49,10 @@ public class Delete extends Action {
 
                     switch (deleteResponse.getStatus()) {
                         case SUCCESS:
-                            System.out.println("Deleted chunk " + chunkNumber + " from " + lookupResponse.getAddress().toString());
+                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString());
                             break;
                         case FILE_NOT_FOUND:
-                            System.out.println("Chunk " + chunkNumber + " was not present in " + lookupResponse.getAddress().toString());
+                            System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
                             break;
                         default:
                             System.out.println("Could not retrieve chunk " + chunkNumber + ", got error " + deleteResponse.getStatus());

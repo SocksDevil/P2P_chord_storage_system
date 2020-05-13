@@ -5,14 +5,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
     
+    private static final boolean DEBUG_MODE = false;
     private static final ExecutorService pool = Executors.newCachedThreadPool();
     private static int port;
 
@@ -45,20 +48,19 @@ public class MessageListener {
                             System.out.println("Message not received properly");
                         } else {
 
-                            System.out.println("Received: " + messageObj);
+                            if(DEBUG_MODE)
+                                System.out.println("- IN  > " + messageObj + " from " + socket.getInetAddress() + ":" + socket.getPort());
                             if (messageObj instanceof Request) {
 
                                 Request request = (Request) messageObj;
                                 Response answer = request.handle();
                                 out.writeObject(answer);
-
+                                if(DEBUG_MODE)
+                                    System.out.println("- OUT > " + (answer != null ? answer : "-------") + " to " + socket.getInetAddress() + ":" + socket.getPort());
                             }
                         }
 
                         socket.shutdownOutput();
-                        // TODO: why is this here??
-                        // while (in.readObject() != null) {}
-                        // socket.shutdownInput();
 
                         socket.close();
                     } catch (IOException | ClassNotFoundException e) {
@@ -71,4 +73,41 @@ public class MessageListener {
             }
         }
     }
+
+    public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+        Socket socket = null;
+        try {
+
+            socket = new Socket(destination.getIp(), destination.getPort());
+            final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+            out.writeObject(request);
+            if(DEBUG_MODE)
+                System.out.println("* OUT > " + request + " to " + destination.getIp() + ":" + destination.getPort() );
+            socket.shutdownOutput();
+            T receivedMessage = (T) in.readObject();
+            
+            if(DEBUG_MODE)
+                System.out.println("* IN  > " + (receivedMessage != null ? receivedMessage : "-------") + " from " + destination.getIp() + ":" + destination.getPort());
+
+            // while (in.readLine() != null) {}
+            socket.shutdownInput();
+            socket.close();
+
+            return receivedMessage;
+        }        
+        catch(SocketException ex){
+            ex.printStackTrace();
+            return null;
+        } 
+        catch (IOException | ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+        return null;
+    }
+
 }

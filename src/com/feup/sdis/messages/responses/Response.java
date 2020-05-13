@@ -7,7 +7,7 @@ import java.io.Serializable;
 public abstract class Response implements Serializable {
     private final Status status;
 
-    Response(Status status){
+    public Response(Status status){
         this.status = status;
     }
 
