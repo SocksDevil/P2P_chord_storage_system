@@ -4,7 +4,7 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
-import com.feup.sdis.messages.requests.LookupRequest;
+import com.feup.sdis.messages.requests.BackupLookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.LookupResponse;
 import com.feup.sdis.model.Store;
@@ -42,9 +42,10 @@ public class ChunkBackup extends Action implements Runnable {
     @Override
     String process() {
 
-        final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileID, chunkNo),repID);
+        String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,repID);
         
-        LookupRequest lookupRequest = new LookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
+        BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
         LookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
@@ -62,8 +63,7 @@ public class ChunkBackup extends Action implements Runnable {
             // System.out.println("Successfully stored chunk " + chunkNo + " of file " + fileID + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
             System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
 
-            Store.instance().getReplCount().addNewID(StoredChunkInfo.getChunkID(fileID, chunkNo),
-                    Peer.addressInfo, this.repID);
+            Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, this.repID);
         }
         else{
             System.out.println("Failed to stored chunk " + chunkNo + " with rep " + repID);
