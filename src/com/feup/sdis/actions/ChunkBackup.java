@@ -54,17 +54,13 @@ public class ChunkBackup extends Action implements Runnable {
             return null;
         }
 
-        // System.out.println("Backing up " + chunkNo + " of file " + fileID + " with rep " + repID + " to " + lookupRequestAnswer.getAddress());
 
         final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
                 lookupRequestAnswer.getAddress(), nChunks, originalFilename, Peer.addressInfo);
 
         final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
         if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
-            // System.out.println("Successfully stored chunk " + chunkNo + " of file " + fileID + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
             System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
-
-            Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, this.repID);
         }
         else{
             System.out.println("Failed to stored chunk " + chunkNo + " with rep " + repID);

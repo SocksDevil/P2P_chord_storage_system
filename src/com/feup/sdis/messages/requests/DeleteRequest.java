@@ -32,8 +32,6 @@ public class DeleteRequest extends Request {
         final SocketAddress chunkOwner = store.getReplCount().getRepDegree(chunkID, replNo);
         store.getReplCount().removeRepDegree(chunkID, replNo);
 
-        System.out.println("(" + chunkNo + "," + replNo + ") - (" + store.getStoredFiles().containsKey(chunkID) +
-                ", " + chunkOwner + ", " + Peer.addressInfo + ")");
         if (!store.getStoredFiles().containsKey(chunkID) || !chunkOwner.equals(Peer.addressInfo)) { // must delete in redirects
             if (chunkOwner == null) {
                 System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
