@@ -14,7 +14,9 @@ import com.feup.sdis.peer.SerializationUtils;
 
 import java.lang.instrument.Instrumentation;
 
-public class ChunkBackup extends Action implements Runnable {
+import java.util.concurrent.Callable;
+
+public class ChunkBackup extends Action implements Callable<String> {
 
     String fileID;
     int repID;
@@ -36,12 +38,6 @@ public class ChunkBackup extends Action implements Runnable {
     }
 
     @Override
-    public void run() {
-
-        this.process();
-    }
-
-    @Override
     String process() {
 
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
@@ -51,9 +47,8 @@ public class ChunkBackup extends Action implements Runnable {
         final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
-            System.out.println("Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID);
+            return "Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID;
             // TODO: ver return
-            return null;
         }
 
         final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
@@ -64,10 +59,14 @@ public class ChunkBackup extends Action implements Runnable {
             System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
         }
         else{
-            System.out.println("Failed to stored chunk " + chunkNo + " with rep " + repID);
+            return "Failed to stored chunk " + chunkNo + " with rep " + repID;
         }
 
         return null;
     }
 
+    @Override
+    public String call() {
+        return this.process();
+    }
 }
