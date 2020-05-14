@@ -1,19 +1,10 @@
 package com.feup.sdis.peer;
-
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +22,7 @@ public class MessageListener {
 
     public MessageListener(int port) {
 
-        this.port = port;
+        MessageListener.port = port;
     }
 
     public void receive() {
@@ -65,14 +56,16 @@ public class MessageListener {
                             socket.shutdownOutput();
                             socket.close();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            if(DEBUG_MODE )
+                                System.out.println("* Socket shutdown/close failed on MessageListener.");
                         }
                     }
                 }
 
                 @Override
                 public void failed(Throwable throwable, Object att) {
-                    //TODO: handle failure
+                    if(DEBUG_MODE )
+                        System.out.println("* Socket accept failed on MessageListener.");
                 }
             });
             try {
@@ -83,7 +76,7 @@ public class MessageListener {
         }
     }
 
-    public synchronized static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
+    public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         try {
 
             AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
@@ -106,11 +99,19 @@ public class MessageListener {
             socket.close();
 
             return receivedMessage;
-        } catch (IOException | InterruptedException | ExecutionException ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
+            if(DEBUG_MODE )
+                System.out.println("* IOException on sendMessage.");
         }
-
-
+        catch(ExecutionException ex){
+            if(DEBUG_MODE )
+                System.out.println("* ExecutionException on sendMessage.");
+        }
+        catch(InterruptedException ex){
+            if(DEBUG_MODE)
+                System.out.println("* InterruptedException on sendMessage.");
+        }
+        
         return null;
     }
 

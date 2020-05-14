@@ -3,7 +3,6 @@ package com.feup.sdis.peer;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
