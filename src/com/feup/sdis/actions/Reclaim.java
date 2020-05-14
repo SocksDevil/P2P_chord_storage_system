@@ -31,7 +31,7 @@ public class Reclaim extends Action {
             System.out.println("> RECLAIM: Backing up to ensure rep degree" + chunkID);
 
             try {
-                BSDispatcher.servicePool.execute(new ChunkBackup(chunkInfo.getFileID(), chunkInfo.getChunkNo(),
+                BSDispatcher.servicePool.submit(new ChunkBackup(chunkInfo.getFileID(), chunkInfo.getChunkNo(),
                         currRepDegree, chunkInfo.getBody(), chunkInfo.getnChunks(),
                         chunkInfo.getDesiredReplicationDegree(), chunkInfo.getOriginalFilename()));
             } catch (IOException e) {

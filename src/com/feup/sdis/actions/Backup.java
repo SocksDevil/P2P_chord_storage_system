@@ -66,11 +66,17 @@ public class Backup extends Action {
                 .collect(Collectors.toList());
 
         if (backupReturnCodes.size() != 0) {
+            Store.instance().getBackedUpFiles().remove(this.file.getfileID());
             for (int i = 0; i < this.repDegree; i++) {
                 for (int j = 0; j < this.file.getNChunks(); j++) {
                     Delete.deleteChunk(j, i, file.getfileID());
                 }
             }
+            StringBuilder error = new StringBuilder("Failed to backup file with the following errors: \n");
+            for(String returnCode: backupReturnCodes)
+                error.append("\t - ").append(returnCode).append("\n");
+            System.out.println(error);
+            return error.toString();
         }
         return "Backed up file";
     }
