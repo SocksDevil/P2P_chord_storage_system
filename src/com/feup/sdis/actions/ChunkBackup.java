@@ -7,7 +7,6 @@ import com.feup.sdis.messages.requests.BackupRequest;
 import com.feup.sdis.messages.requests.BackupLookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.BackupLookupResponse;
-import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;

@@ -9,7 +9,6 @@ import com.feup.sdis.messages.requests.GetChunkRequest;
 import com.feup.sdis.messages.responses.ChunkInfoResponse;
 import com.feup.sdis.messages.responses.ChunkLookupResponse;
 import com.feup.sdis.messages.responses.ChunkResponse;
-import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.RestoredFileInfo;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;

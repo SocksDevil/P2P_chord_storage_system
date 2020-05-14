@@ -1,6 +1,5 @@
 package com.feup.sdis.messages.requests;
 
-import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.ChunkLookupResponse;
@@ -30,8 +29,8 @@ public class ChunkLookupRequest extends Request {
 
         SocketAddress peerWithChunk = Peer.addressInfo;
         if (!store.getStoredFiles().containsKey(chunkID) ||
-                store.getReplCount().getRepDegree(chunkID, replNo) != Peer.addressInfo) { // TODO may contain placeholder, handle this somewhere
-            final SocketAddress redirectAddress = store.getReplCount().getRepDegree(chunkID, replNo);
+                store.getReplCount().getPeerAddress(chunkID, replNo) != Peer.addressInfo) { // TODO may contain placeholder, handle this somewhere
+            final SocketAddress redirectAddress = store.getReplCount().getPeerAddress(chunkID, replNo);
             if (redirectAddress == null) {
                 System.out.println("> CHUNK LOOKUP: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
                 return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);

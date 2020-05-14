@@ -29,7 +29,7 @@ public class DeleteRequest extends Request {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
-        final SocketAddress chunkOwner = store.getReplCount().getRepDegree(chunkID, replNo);
+        final SocketAddress chunkOwner = store.getReplCount().getPeerAddress(chunkID, replNo);
         store.getReplCount().removeRepDegree(chunkID, replNo);
 
         if (!store.getStoredFiles().containsKey(chunkID) || !chunkOwner.equals(Peer.addressInfo)) { // must delete in redirects
@@ -70,6 +70,7 @@ public class DeleteRequest extends Request {
             System.out.println("> DELETE: Could not find chunk " + chunkID + " on disk");
             returnStatus = Status.FILE_NOT_FOUND;
         }
+        // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
         else if(!fileToDelete.delete()){
             System.out.println("> DELETE: Failed to delete chunk " + chunkID);
             returnStatus = Status.ERROR;

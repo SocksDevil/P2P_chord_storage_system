@@ -8,8 +8,6 @@ import com.feup.sdis.messages.requests.DeleteRequest;
 import com.feup.sdis.messages.responses.ChunkInfoResponse;
 import com.feup.sdis.messages.responses.DeleteFileInfoResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
-import com.feup.sdis.model.RestoredFileInfo;
-import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
