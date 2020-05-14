@@ -3,6 +3,9 @@ package com.feup.sdis.chord;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import com.feup.sdis.messages.requests.chord.ClosestPreceedingRequest;
 import com.feup.sdis.messages.requests.chord.FindSuccessorRequest;
@@ -41,6 +44,7 @@ public class Chord {
     private SocketAddress self = null;
     private SocketAddress predecessor = null;
     private int next = 1;
+    private ScheduledThreadPoolExecutor periodicThreadPool;
 
     // create
     public Chord(SocketAddress self) {
@@ -258,55 +262,16 @@ public class Chord {
         return message;
     }
 
-    // TODO : These threads should be handled by a scheduled executor to avoid
-    // sleeps
     public void initThreads() {
 
-        Thread t1 = new Thread(new Runnable() {
+        this.periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
 
-            @Override
-            public void run() {
+        Runnable t1 = () -> { Chord.chordInstance.stabilize();};
+        Runnable t2 = () -> { Chord.chordInstance.fixFingers();};
 
-                while (true) {
-                    try {
-                        Chord.chordInstance.stabilize();
-                        Thread.sleep(STABILIZE_INTERVAL_MS);
+        this.periodicThreadPool.scheduleAtFixedRate(t1, 0, this.STABILIZE_INTERVAL_MS, TimeUnit.MILLISECONDS);
+        this.periodicThreadPool.scheduleAtFixedRate(t2, 200, this.FIX_FINGERS_INTERVAL_MS, TimeUnit.MILLISECONDS);
 
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-        });
-
-        Thread t2 = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                while (true) {
-                    try {
-                        Chord.chordInstance.fixFingers();
-                        Thread.sleep(FIX_FINGERS_INTERVAL_MS);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-        });
-
-        t1.start();
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        t2.start();
     }
 
     // TODO: Move this from here
