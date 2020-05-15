@@ -10,8 +10,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.feup.sdis.messages.responses.NullResponse;
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.chord.SocketAddress;
+import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
@@ -45,8 +47,10 @@ public class MessageListener {
 
                     if(socket != null && socket.isOpen()){
                         Request request = SerializationUtils.deserialize(socket);
-                        if (request == null)
+                        if (request == null){
+                            System.out.println("* Request as null.");
                             return;
+                        }
 
                         Response response = request.handle();
 
@@ -56,7 +60,7 @@ public class MessageListener {
                             socket.shutdownOutput();
                             socket.close();
                         } catch (IOException e) {
-                            if(DEBUG_MODE )
+                            // if(DEBUG_MODE )
                                 System.out.println("* Socket shutdown/close failed on MessageListener.");
                         }
                     }
@@ -64,7 +68,7 @@ public class MessageListener {
 
                 @Override
                 public void failed(Throwable throwable, Object att) {
-                    if(DEBUG_MODE )
+                    // if(DEBUG_MODE )
                         System.out.println("* Socket accept failed on MessageListener.");
                 }
             });
@@ -111,8 +115,8 @@ public class MessageListener {
             if(DEBUG_MODE)
                 System.out.println("* InterruptedException on sendMessage.");
         }
-        
-        return null;
+
+        return (T) new NullResponse(Status.ERROR);
     }
 
 }

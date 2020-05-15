@@ -4,14 +4,14 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.Request;
-import com.feup.sdis.messages.responses.chord.ClosestPreceedingResponse;
+import com.feup.sdis.messages.responses.chord.ClosestPrecedingResponse;
 import com.feup.sdis.messages.responses.Response;
 
-public class ClosestPreceedingRequest extends Request {
+public class ClosestPrecedingRequest extends Request {
 
     private SocketAddress addressInfo;
 
-    public ClosestPreceedingRequest(SocketAddress connection){
+    public ClosestPrecedingRequest(SocketAddress connection){
 
         this.addressInfo = connection;
     }
@@ -19,9 +19,9 @@ public class ClosestPreceedingRequest extends Request {
     @Override
     public Response handle() {
         
-        SocketAddress preeceding = Chord.chordInstance.closestPreceedingNode(addressInfo.getPeerID());
+        SocketAddress preeceding = Chord.chordInstance.closestPrecedingNode(addressInfo.getPeerID());
 
-        return new ClosestPreceedingResponse(Status.SUCCESS, preeceding);
+        return new ClosestPrecedingResponse(Status.SUCCESS, preeceding);
     }
 
     @Override
@@ -33,6 +33,6 @@ public class ClosestPreceedingRequest extends Request {
     @Override
     public String toString(){
         
-        return "req: CHD_CLOSEST_PRECEEDING_NODE " + this.addressInfo;
+        return "req: CHD_CLOSEST_PRECEDING_NODE " + this.addressInfo;
     }
 }

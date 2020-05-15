@@ -7,13 +7,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.feup.sdis.messages.requests.chord.ClosestPreceedingRequest;
+import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.BatchRequest;
+import com.feup.sdis.messages.requests.Request;
+import com.feup.sdis.messages.requests.chord.ClosestPrecedingRequest;
 import com.feup.sdis.messages.requests.chord.FindSuccessorRequest;
 import com.feup.sdis.messages.requests.chord.GetPredecessorRequest;
 import com.feup.sdis.messages.requests.chord.NotifyRequest;
-import com.feup.sdis.messages.responses.chord.ClosestPreceedingResponse;
+import com.feup.sdis.messages.requests.chord.PingRequest;
+import com.feup.sdis.messages.requests.chord.ReconcileSuccessorListRequest;
+import com.feup.sdis.messages.responses.BatchResponse;
+import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.messages.responses.chord.ClosestPrecedingResponse;
 import com.feup.sdis.messages.responses.chord.FindSuccessorResponse;
 import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
+import com.feup.sdis.messages.responses.chord.ReconcileSuccessorListResponse;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 
@@ -35,11 +43,14 @@ public class Chord {
     // Constants
     private final boolean DEBUG_MODE = true;
     private final int FINGER_TABLE_SIZE = 8;
-    private final int FIX_FINGERS_INTERVAL_MS = 250;
-    private final int STABILIZE_INTERVAL_MS = 250;
+    private final int FIX_FINGERS_INTERVAL_MS = 500;
+    private final int STABILIZE_INTERVAL_MS = 500;
+    private final int CHECK_PREDECESSOR_INTERVAL_MS = 500;
+    private final int SUCESSOR_LIST_SIZE = 3;
 
     public static Chord chordInstance;
     private SocketAddress[] fingerTable;
+    private SocketAddress[] successorList;
     private UUID[] stepValues;
     private SocketAddress self = null;
     private SocketAddress predecessor = null;
@@ -49,12 +60,15 @@ public class Chord {
     // create
     public Chord(SocketAddress self) {
         this.fingerTable = new SocketAddress[FINGER_TABLE_SIZE];
+        this.successorList = new SocketAddress[SUCESSOR_LIST_SIZE];
         this.stepValues = new UUID[FINGER_TABLE_SIZE];
 
         // TODO: Remove this, only used to allow for smaller table sizes for testing
         self.setPeerID(Chord.normalizeToSize(self.getPeerID(), FINGER_TABLE_SIZE));
         this.self = self;
         Arrays.fill(this.fingerTable, this.self);
+        Arrays.fill(this.successorList, this.self);
+        
         this.initKeyLookupSteps();
     }
 
@@ -65,8 +79,13 @@ public class Chord {
         // TODO: Remove this, only used to allow for smaller table sizes for testing
         node.setPeerID(Chord.normalizeToSize(node.getPeerID(), FINGER_TABLE_SIZE));
 
-        ClosestPreceedingResponse res = MessageListener.sendMessage(new ClosestPreceedingRequest(self), node);
+        ClosestPrecedingResponse res = MessageListener.sendMessage(new ClosestPrecedingRequest(self), node);
         this.setSucessor(res.getAddress());
+    }
+
+    public SocketAddress[] getSucessorList(){
+
+        return this.successorList;
     }
 
     public SocketAddress getSucessor() {
@@ -74,12 +93,13 @@ public class Chord {
         return this.fingerTable[0];
     }
 
-    public SocketAddress setSucessor(SocketAddress newSucessor) {
+    public void setSucessor(SocketAddress newSucessor) {
 
-        return this.fingerTable[0] = newSucessor;
+        this.fingerTable[0] = newSucessor;
+        this.successorList[0] = newSucessor;
     }
 
-    public synchronized SocketAddress closestPreceedingNode(UUID key) {
+    public synchronized SocketAddress closestPrecedingNode(UUID key) {
 
         for (int i = fingerTable.length - 1; i >= 0; i--) {
 
@@ -105,7 +125,7 @@ public class Chord {
             return this.getSucessor();
         } else {
 
-            SocketAddress cpn = this.closestPreceedingNode(key);
+            SocketAddress cpn = this.closestPrecedingNode(key);
             FindSuccessorResponse res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
             return res.getAddress();
         }
@@ -114,16 +134,23 @@ public class Chord {
 
     public void stabilize() {
 
-//        if (DEBUG_MODE)
-//            System.out.println("> CHORD: Stabilizing table");
-
         SocketAddress successorsPerceivedPredecessorAddr = null;
 
         if (this.getSucessor() != this.self) {
 
-            // Find the perceived predecessor of this node's sucessor
-            GetPredecessorResponse successorsPerceivedPredecessor = MessageListener
-                    .sendMessage(new GetPredecessorRequest(), this.getSucessor());
+            // Find the perceived predecessor of this node's sucessor and there r-sucessor list
+            GetPredecessorRequest getPredReq = new GetPredecessorRequest();
+            ReconcileSuccessorListRequest recSucReq = new ReconcileSuccessorListRequest();
+            Request[] requestList = {getPredReq,recSucReq};
+            BatchRequest requests = new BatchRequest(requestList);
+            BatchResponse responses = MessageListener.sendMessage(requests, this.getSucessor());
+            GetPredecessorResponse successorsPerceivedPredecessor = (GetPredecessorResponse) responses.getResponses()[0];
+            ReconcileSuccessorListResponse successorsSuccList = (ReconcileSuccessorListResponse) responses.getResponses()[0];
+            
+            // Update successor list
+            SocketAddress [] newSuccList = successorsSuccList.getSuccessorList();
+            for(int i = 0; i < this.SUCESSOR_LIST_SIZE - 1; i++)
+                this.successorList[i+1] = newSuccList[i];
 
             successorsPerceivedPredecessorAddr = successorsPerceivedPredecessor.getAddress();
 
@@ -132,15 +159,24 @@ public class Chord {
                 MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
                 return;
             }
+
         } else {
             // Successor is self
             successorsPerceivedPredecessorAddr = this.predecessor;
 
-            if (successorsPerceivedPredecessorAddr == null)
-                return;
+            if (successorsPerceivedPredecessorAddr != null){
+                
+                // If the sucessor is self, and the predecessor is a different peer, the successor should now be that peer
+                this.setSucessor(successorsPerceivedPredecessorAddr);
+            }
+
+            return;
         }
 
         UUID successorsPerceivedPredecessorID = successorsPerceivedPredecessorAddr.getPeerID();
+
+        if(successorsPerceivedPredecessorID.equals(self.getPeerID()))
+            return;
 
         // Update the sucessor
         if (this.betweenTwoKeys(this.self.getPeerID(), this.getSucessor().getPeerID(), successorsPerceivedPredecessorID,
@@ -196,6 +232,7 @@ public class Chord {
 
     }
 
+
     public SocketAddress getPredecessor() {
         return predecessor;
     }
@@ -206,7 +243,18 @@ public class Chord {
 
     public void checkPredecessor() {
 
-        return;
+        if(this.predecessor == null)
+            return;
+
+        Response res = MessageListener.sendMessage(new PingRequest(), predecessor);
+
+        if(res.getStatus().equals(Status.ERROR)){
+
+            this.predecessor = null;
+            if(DEBUG_MODE)
+                System.out.println("> CHORD: Predecessor failed");
+        }
+
     }
 
     private void initKeyLookupSteps() {
@@ -266,11 +314,13 @@ public class Chord {
 
         this.periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
 
-        Runnable t1 = () -> { Chord.chordInstance.stabilize();};
-        Runnable t2 = () -> { Chord.chordInstance.fixFingers();};
+        Runnable t1 = () -> { Chord.chordInstance.stabilize();System.out.println("Stab");};
+        Runnable t2 = () -> { Chord.chordInstance.fixFingers();System.out.println("FixFinger");};
+        Runnable t3 = () -> { try{Chord.chordInstance.checkPredecessor();}catch(Exception ex){ ex.printStackTrace();} System.out.println("Pred");};
 
         this.periodicThreadPool.scheduleAtFixedRate(t1, 0, this.STABILIZE_INTERVAL_MS, TimeUnit.MILLISECONDS);
         this.periodicThreadPool.scheduleAtFixedRate(t2, 200, this.FIX_FINGERS_INTERVAL_MS, TimeUnit.MILLISECONDS);
+        this.periodicThreadPool.scheduleAtFixedRate(t3, 400, this.CHECK_PREDECESSOR_INTERVAL_MS, TimeUnit.MILLISECONDS);
 
     }
 
