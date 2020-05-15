@@ -101,14 +101,30 @@ public class Chord {
 
     public synchronized SocketAddress closestPrecedingNode(UUID key) {
 
+        SocketAddress bestMatchFingerTable = null;
+        SocketAddress bestMatchSuccTable = null;
+
         for (int i = fingerTable.length - 1; i >= 0; i--) {
 
             if (this.fingerTable[i] == null)
                 continue;
 
             if (this.betweenTwoKeys(self.getPeerID(), key, this.fingerTable[i].getPeerID(), false, false))
-                return this.fingerTable[i];
+                bestMatchFingerTable =  this.fingerTable[i];
         }
+
+        for (int i = successorList.length - 1; i >= 0; i--) {
+
+            if (this.betweenTwoKeys(self.getPeerID(), key, this.successorList[i].getPeerID(), false, false))
+                bestMatchSuccTable =  this.successorList[i];
+
+        }
+
+        if(compareDistanceToKey(bestMatchFingerTable.getPeerID(), bestMatchSuccTable.getPeerID(), key) <= 0)
+            return bestMatchFingerTable;
+        else
+            return bestMatchSuccTable;
+
 
         return self;
     }
@@ -291,6 +307,17 @@ public class Chord {
 
         return (a.compareTo(b) < 0) ? (a.compareTo(c) < 0) && (c.compareTo(b) < 0)
                 : !((b.compareTo(c) < 0) && (c.compareTo(a) < 0));
+    }
+
+    public static int compareDistanceToKey(UUID a, UUID b, UUID c){
+
+        BigInteger aInt = convertToBigInteger(a);
+        BigInteger bInt = convertToBigInteger(b);
+        BigInteger cInt = convertToBigInteger(c);
+        BigInteger acDif = aInt.subtract(cInt).abs();
+        BigInteger bcDif = bInt.subtract(cInt).abs();
+        
+        return acDif.compareTo(bcDif);
     }
 
     public String state() {
