@@ -83,6 +83,8 @@ public class MessageListener {
     public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         try {
 
+            if(destination == null)
+                return (T) new NullResponse(Status.ERROR);
             AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
             Future<Void> future = socket.connect(new InetSocketAddress(destination.getIp(), destination.getPort()));
             future.get();
