@@ -2,11 +2,12 @@ package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
+import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.DeleteFileInfo;
 import com.feup.sdis.messages.requests.DeleteRequest;
-import com.feup.sdis.messages.responses.ChunkResponse;
+import com.feup.sdis.messages.responses.ChunkInfoResponse;
+import com.feup.sdis.messages.responses.DeleteFileInfoResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
-import com.feup.sdis.model.RestoredFileInfo;
-import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
@@ -20,27 +21,38 @@ public class Delete extends Action {
 
     @Override
     public String process() {
-        final ChunkResponse response = Restore.getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
+        final ChunkInfoResponse response = Restore.getChunkInfo(fileID, 0, Constants.MAX_REPL_DEGREE);
         if (response == null) {
             final String error = "File " + fileID + " not found";
             System.out.println(error);
             return error;
         }
-        final RestoredFileInfo file = new RestoredFileInfo(fileID, response.getReplDegree(), response.getnChunks());
-        Store.instance().getBackedUpFiles().remove(fileID);
-        //TODO delete BackupFileInfo from the peer that initiated the BACKUP. need chord stuff to figure it out
 
-        for(int chunkNo = 0; chunkNo < file.getNChunks(); chunkNo++) {
-            for (int replDegree = 0; replDegree < file.getDesiredReplicationDegree(); replDegree++) {
+        final int desiredRepl = response.getReplDegree();
+        final int nChunks = response.getnChunks();
+        final SocketAddress backupInitiatorPeer = response.getInitiatorPeer();
+
+        // remove BackupFileInfo from the peer that initiated the backup
+        final DeleteFileInfo deleteFileInfoReq = new DeleteFileInfo(fileID);
+        final DeleteFileInfoResponse deleteFileInfoRes = MessageListener.sendMessage(deleteFileInfoReq, backupInitiatorPeer);
+
+        if(deleteFileInfoRes == null || deleteFileInfoRes.getStatus() != Status.SUCCESS) {
+            final String error = "Error removing file " + fileID + " info from peer " + backupInitiatorPeer;
+            System.out.println(error);
+            return error;
+        }
+
+        for(int chunkNo = 0; chunkNo < nChunks; chunkNo++) {
+            for (int replDegree = 0; replDegree < desiredRepl; replDegree++) {
                 int chunkNumber = chunkNo;
-                int replicationDegree = replDegree;
+                int replNo = replDegree;
                 BSDispatcher.servicePool.execute(() -> {
+                    final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
 
-                    String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
-                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID,replicationDegree);
-
-                    DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber);
-                    DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest,addressInfo);
+                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
+                    final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
+                    System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
+                    final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
                     if (deleteResponse == null) {
                         System.out.println("Could not read DELETE response for chunk " + chunkNumber);
@@ -49,13 +61,14 @@ public class Delete extends Action {
 
                     switch (deleteResponse.getStatus()) {
                         case SUCCESS:
-                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString());
+                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
                             break;
                         case FILE_NOT_FOUND:
                             System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
                             break;
                         default:
-                            System.out.println("Could not retrieve chunk " + chunkNumber + ", got error " + deleteResponse.getStatus());
+                            System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
+                                    ", got error " + deleteResponse.getStatus());
                     }
                 });
             }

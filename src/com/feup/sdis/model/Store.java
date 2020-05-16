@@ -62,4 +62,13 @@ public class Store {
         return false;
     }
 
+    // Returns null if empty
+    public synchronized StoredChunkInfo popChunkFromStored(){
+        if(this.storedFiles.size() == 0)
+            return null;
+        
+        Map.Entry<String,StoredChunkInfo> entry = this.storedFiles.entrySet().iterator().next();        
+        return this.storedFiles.remove(entry.getKey());
+    }
+
 }

@@ -5,7 +5,6 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.Request;
 import com.feup.sdis.messages.responses.Response;
-import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
 import com.feup.sdis.messages.responses.chord.NotifyResponse;
 
 

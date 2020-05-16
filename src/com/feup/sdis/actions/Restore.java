@@ -3,12 +3,17 @@ package com.feup.sdis.actions;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.ChunkLookupRequest;
+import com.feup.sdis.messages.requests.GetChunkInfoRequest;
 import com.feup.sdis.messages.requests.GetChunkRequest;
+import com.feup.sdis.messages.responses.ChunkInfoResponse;
+import com.feup.sdis.messages.responses.ChunkLookupResponse;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.model.RestoredFileInfo;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.Peer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -24,18 +29,17 @@ public class Restore extends Action {
     @Override
     public String process() {
 
-        final ChunkResponse response = getChunk(fileID, 0, Constants.MAX_REPL_DEGREE);
+        final ChunkInfoResponse response = getChunkInfo(fileID, 0, Constants.MAX_REPL_DEGREE);
         if (response == null) {
             final String error = "File " + fileID + " not found";
             System.out.println(error);
             return error;
         }
         final RestoredFileInfo file = new RestoredFileInfo(fileID, response.getReplDegree(), response.getnChunks());
-        file.getRestoredChunks().put(0, response.getData());
         System.out.println("Found file  " + response.getOriginalFilename() +
                 " with replication degree " + response.getReplDegree() + " and " + response.getnChunks() + " chunks");
 
-        for (int i = 1; i < response.getnChunks(); i++) {
+        for (int i = 0; i < response.getnChunks(); i++) {
             int chunkNo = i;
             BSDispatcher.servicePool.execute(() -> {
                 final ChunkResponse chunk = getChunk(fileID, chunkNo, response.getReplDegree());
@@ -63,13 +67,26 @@ public class Restore extends Action {
         return "Restored file";
     }
 
-    public static ChunkResponse getChunk(String fileId, int chunkNo, int replDegree) {
+    public static ChunkResponse getChunk(String fileID, int chunkNo, int replDegree) {
         for (int replicator = 0; replicator < replDegree; replicator++) {
-            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileId, chunkNo),replicator);
+            String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
 
-            GetChunkRequest getChunkRequest = new GetChunkRequest(fileId, chunkNo);
-            
-            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest,addressInfo);
+            // find peer that has chunk
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replicator); // get assigned peer
+            ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNo, replicator, Peer.addressInfo); // resolve redirects
+            ChunkLookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+
+            if (lookupResponse == null) {
+                System.out.println("Could not read response for ChunkLookupRequest on chunk " + chunkID);
+                continue;
+            }
+            else if (lookupResponse.getStatus() != Status.SUCCESS) {
+                System.out.println("Could not find peer with chunk " + chunkID + ", got error " + lookupResponse.getStatus());
+                continue;
+            }
+
+            GetChunkRequest getChunkRequest = new GetChunkRequest(fileID, chunkNo);
+            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);
@@ -80,6 +97,41 @@ public class Restore extends Action {
             }
 
             System.out.println("Retrieved chunk " + chunkNo + " successfully");
+            return chunkResponse;
+        }
+        return null;
+    }
+
+    public static ChunkInfoResponse getChunkInfo(String fileID, int chunkNo, int replDegree) {
+        for (int replicator = 0; replicator < replDegree; replicator++) {
+            final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+
+            // find peer that has chunk
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replicator); // get assigned peer
+            final ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNo, replicator, Peer.addressInfo); // resolve redirects
+            final ChunkLookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+
+            if (lookupResponse == null) {
+                System.out.println("Could not read response for ChunkLookupRequest on chunk " + chunkID);
+                continue;
+            }
+            else if (lookupResponse.getStatus() != Status.SUCCESS) {
+                System.out.println("Could not find peer with chunk " + chunkID + ", got error " + lookupResponse.getStatus());
+                continue;
+            }
+
+            final GetChunkInfoRequest getChunkRequest = new GetChunkInfoRequest(fileID, chunkNo);
+            final ChunkInfoResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
+
+            if (chunkResponse == null) {
+                System.out.println("Could not read response for chunk " + chunkNo);
+                continue;
+            } else if (chunkResponse.getStatus() != Status.SUCCESS) {
+                System.out.println("Could not retrieve info of chunk " + chunkNo + ", got error " + chunkResponse.getStatus());
+                continue;
+            }
+
+            System.out.println("Retrieved info of chunk " + chunkNo + " successfully");
             return chunkResponse;
         }
         return null;

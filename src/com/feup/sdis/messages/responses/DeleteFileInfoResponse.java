@@ -3,16 +3,12 @@ package com.feup.sdis.messages.responses;
 import com.feup.sdis.messages.Status;
 
 
-public class DeleteResponse extends Response {
+public class DeleteFileInfoResponse extends Response {
     private final String fileID;
-    private final int chunkNo;
-    private final int replNo;
 
-    public DeleteResponse(Status status, String fileID, int chunkNo, int replNo) {
+    public DeleteFileInfoResponse(Status status, String fileID) {
         super(status);
         this.fileID = fileID;
-        this.chunkNo = chunkNo;
-        this.replNo = replNo;
     }
 
     public String getFileID() {
@@ -24,8 +20,6 @@ public class DeleteResponse extends Response {
         return "DeleteResponse{" +
                 "status=" + getStatus() +
                 ", fileID='" + fileID + '\'' +
-                ", chunkNo=" + chunkNo +
-                ", replNo=" + replNo +
                 '}';
     }
 }

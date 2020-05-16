@@ -4,8 +4,9 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.BackupRequest;
+import com.feup.sdis.messages.requests.BackupLookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
-import com.feup.sdis.model.Store;
+import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;
@@ -22,7 +23,6 @@ public class ChunkBackup extends Action implements Runnable {
     private final int nChunks;
     private final int replDegree;
     private final String originalFilename;
-    private final int MAX_TRIES = 3;
 
     public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData, int nChunks, int replDegree, String originalFilename) {
 
@@ -44,22 +44,29 @@ public class ChunkBackup extends Action implements Runnable {
     @Override
     String process() {
 
-        for (int i = 0; i < this.MAX_TRIES; i++) {
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
 
-            final SocketAddress addressInfo = Chord.chordInstance.lookup(StoredChunkInfo.getChunkID(fileID, chunkNo),repID);
-            BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData, addressInfo, nChunks, originalFilename);
+        final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
+        final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
-
-            BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
-            if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
-                System.out.println("Successfully stored chunk " + chunkNo + " of file " + fileID);
-                Store.instance().getReplCount().addNewID(StoredChunkInfo.getChunkID(fileID, chunkNo),
-                        Peer.addressInfo, this.repID);
-                break;
-            }
-
-            System.out.println("Failed to store chunk " + chunkNo + " of file " + fileID + ", trying again");
+        if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
+            System.out.println("Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID);
+            // TODO: ver return
+            return null;
         }
+
+        final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
+                lookupRequestAnswer.getAddress(), nChunks, originalFilename, Peer.addressInfo);
+
+        final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
+        if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
+            System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
+        }
+        else{
+            System.out.println("Failed to stored chunk " + chunkNo + " with rep " + repID);
+        }
+
         return null;
     }
 
