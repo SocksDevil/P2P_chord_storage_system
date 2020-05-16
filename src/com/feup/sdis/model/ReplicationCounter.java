@@ -49,6 +49,11 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
     public synchronized SocketAddress removeRepDegree(String key, Integer repDegree){
         Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
         SocketAddress addr = peers.remove(repDegree);
+        if(peers.isEmpty()){
+            this.removeChunkInfo(key);
+            this.updateObject();
+            return addr;
+        }
         this.files.put(key, peers);
         this.updateObject();
 

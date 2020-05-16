@@ -1,13 +1,17 @@
 package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.model.BackupFileInfo;
+import com.feup.sdis.model.ReplicationCounter;
 import com.feup.sdis.model.SerializableHashMap;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.Peer;
 
 import java.util.Map;
+import java.util.Set;
 
 public class State extends Action {
     @Override
@@ -20,7 +24,7 @@ public class State extends Action {
             message += "  - " + file.getfileID() + "\n"
                     + "    > " + "original filename: " + file.getOriginalFilename() + "\n"
                     + "    > " + "original path: " + file.getOriginalPath() + "\n"
-                    + "    > " + "desired replication degree: " + file.getDesiredReplicationDegree() + "\n"
+                    + "    > " + "saved replication degree: " + file.getDesiredReplicationDegree() + "\n"
                     + "    > " + "number of chunks: " + file.getNChunks() + "\n";
             for (int i = 0; i < file.getNChunks(); i++) {
                 String chunkID = file.getfileID() + Constants.idSeparation + i;
@@ -38,7 +42,19 @@ public class State extends Action {
             message += "    > chunk number: " + entry.getValue().getChunkNo() + "\n";
             message += "    > chunk size (KBytes): " + entry.getValue().getChunkSize() / 1000 + "\n";
             message += "    > desired replication degree: " + entry.getValue().getDesiredReplicationDegree() + "\n";
-            message += "    > perceived replication degree: " + Store.instance().getReplCount().getSize(entry.getKey()) + "\n";
+            message += "    > saved replication degree: " + Store.instance().getReplCount().getSize(entry.getKey()) + "\n";
+        }
+
+
+        final ReplicationCounter reCounter = Store.instance().getReplCount();
+        message += "Redirects chunks: " + (reCounter.size() == 0 ? "NONE" : reCounter.size()) + "\n";
+        for (Map.Entry<String, Map<Integer, SocketAddress>> entry : reCounter.entrySet()) {
+            message += "  - " + entry.getKey() + "\n";
+            for(Map.Entry<Integer, SocketAddress> entry2 : entry.getValue().entrySet()){
+                message += "       > rep No: " + entry2.getKey() + "\n";
+                message += "       > redirect: " + (entry2.getValue().equals(Peer.addressInfo) ? "no" : "yes")  + "\n";
+                message += "       > socket address: " + entry2.getValue() + "\n";
+            }
         }
 
         message += Chord.chordInstance.state();

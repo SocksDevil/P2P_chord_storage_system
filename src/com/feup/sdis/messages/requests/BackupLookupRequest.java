@@ -56,7 +56,7 @@ public class BackupLookupRequest extends Request {
             if(Store.instance().getReplCount().containsRepDegree(chunkID, this.currReplication)){
 
                 // If it was the responsible (final == beginning), removes the redirect entry
-                System.out.println("> BACKUP LOOKUP: Failed  " + chunkNo + " of file " + fileID);
+                System.out.println("> BACKUP LOOKUP: Failed " + this.currReplication + " of file " + chunkID);
 
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
                 // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
@@ -76,28 +76,29 @@ public class BackupLookupRequest extends Request {
             // This should never happen
             if(lookupRequestAnswer == null ){
                 System.err.println("Received null in lookup response: backing " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
-                return null;
+                return new BackupLookupResponse(Status.ERROR, Peer.addressInfo);
             }
 
+            // System has no available space
+            if (lookupRequestAnswer.getStatus() != Status.SUCCESS) {
+                System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
+                return lookupRequestAnswer;
+            }
+
+            System.out.println("> BACKUP LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
+            
             // Responsible peer save redirect
-            if(!this.redirected){
+            if(!this.redirected ){
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
                 Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
             }
 
-            // System has no available space
-            if (lookupRequestAnswer.getStatus() == Status.NO_SPACE) {
-                System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
-                return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
-            }
-
             // Successfully found
-            System.out.println("> BACKUP LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
             return lookupRequestAnswer;
         }
 
         System.out.println("> BACKUP LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
-        Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, currReplication);
+        Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, this.currReplication);
         return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
     }
 

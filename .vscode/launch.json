@@ -51,7 +51,7 @@
             "name": "BACKUP CC r=2",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 5"
         },
         {
             "type": "java",
@@ -116,7 +116,7 @@
             "name": "DELETE",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 motaengil DELETE 4f52b037-fb2b-3f50-9d50-267d5bb5d718"
+            "args": "127.0.0.1 metadias DELETE 4f52b037-fb2b-3f50-9d50-267d5bb5d718"
         }
     ]
 }

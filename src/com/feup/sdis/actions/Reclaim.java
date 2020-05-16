@@ -35,7 +35,7 @@ public class Reclaim extends Action {
                         currRepDegree, chunkInfo.getBody(), chunkInfo.getnChunks(),
                         chunkInfo.getDesiredReplicationDegree(), chunkInfo.getOriginalFilename()));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
                 e.printStackTrace();
             }
 
