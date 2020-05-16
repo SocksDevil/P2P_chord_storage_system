@@ -102,7 +102,7 @@
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
             // "args": "127.0.0.1 mcgun RESTORE c8223975-3365-3215-b46a-df17c9e913d0"
-            "args": "127.0.0.1 mcgun RESTORE 4f52b037-fb2b-3f50-9d50-267d5bb5d718"
+            "args": "127.0.0.1 metadias RESTORE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
         },
         {
             "type": "java",
@@ -116,7 +116,7 @@
             "name": "DELETE",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 metadias DELETE 4f52b037-fb2b-3f50-9d50-267d5bb5d718"
+            "args": "127.0.0.1 metadias DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
         }
     ]
 }

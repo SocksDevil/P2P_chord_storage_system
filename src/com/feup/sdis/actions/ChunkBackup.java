@@ -10,6 +10,9 @@ import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;
+import com.feup.sdis.peer.SerializationUtils;
+
+import java.lang.instrument.Instrumentation;
 
 public class ChunkBackup extends Action implements Runnable {
 
@@ -52,7 +55,6 @@ public class ChunkBackup extends Action implements Runnable {
             // TODO: ver return
             return null;
         }
-
 
         final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
                 lookupRequestAnswer.getAddress(), nChunks, originalFilename, Peer.addressInfo);
