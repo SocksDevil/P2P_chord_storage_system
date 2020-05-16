@@ -30,7 +30,7 @@ import com.feup.sdis.peer.MessageListener;
  * 
  * - [x] Add list of r sucessors as described in the paper 
  * - [x] Move updating threads to a scheduled thread pool 
- * - [ ] Handle peer failing 
+ * - [x] Handle peer failing 
  * - [ ] Handle peer shutdown 
  * - [ ] See concurrency of chord (maybe we need some syncrhonized methods) 
  * - [x] Implement the "predecessor failure-checking" of the protocol 
@@ -47,6 +47,7 @@ public class Chord {
     private final int STABILIZE_INTERVAL_MS = 500;
     private final int CHECK_PREDECESSOR_INTERVAL_MS = 500;
     private final int SUCESSOR_LIST_SIZE = 3;
+    private final ScheduledThreadPoolExecutor periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
 
     public static Chord chordInstance;
     private SocketAddress[] fingerTable;
@@ -55,21 +56,19 @@ public class Chord {
     private SocketAddress self = null;
     private SocketAddress predecessor = null;
     private int next = 1;
-    private ScheduledThreadPoolExecutor periodicThreadPool;
 
     // create
     public Chord(SocketAddress self) {
+        this.self = self;
         this.fingerTable = new SocketAddress[FINGER_TABLE_SIZE];
         this.successorList = new SocketAddress[SUCESSOR_LIST_SIZE];
         this.stepValues = new UUID[FINGER_TABLE_SIZE];
-
-        // TODO: Remove this, only used to allow for smaller table sizes for testing
-        self.setPeerID(Chord.normalizeToSize(self.getPeerID(), FINGER_TABLE_SIZE));
-        this.self = self;
         Arrays.fill(this.fingerTable, this.self);
         Arrays.fill(this.successorList, this.self);
-        
         this.initKeyLookupSteps();
+        
+        // TODO: Remove this, only used to allow for smaller table sizes for testing
+        self.setPeerID(Chord.normalizeToSize(self.getPeerID(), FINGER_TABLE_SIZE));
     }
 
     // join
@@ -132,8 +131,8 @@ public class Chord {
 
         }
 
-        // if(bestMatchFingerTable == null ||  bestMatchSuccTable == null)
-        //     return self;
+        if(bestMatchFingerTable == null ||  bestMatchSuccTable == null)
+            return self;
 
         // Return best match
         return compareDistanceToKey(bestMatchFingerTable.getPeerID(), bestMatchSuccTable.getPeerID(), key) <= 0 ? bestMatchFingerTable : bestMatchSuccTable;
@@ -146,38 +145,41 @@ public class Chord {
 
     public SocketAddress findSuccessor(UUID key) {
 
+
         if (this.betweenTwoKeys(this.self.getPeerID(), this.getSucessor().getPeerID(), key, false, true)) {
-
+            // The current peer is the closeste preceding node from key
             return this.getSucessor();
-        } else {
 
-            while(true){
-
-                SocketAddress cpn = this.closestPrecedingNode(key);
-
-                if(cpn == self)
-                    break;
-
-                Response res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
-
-                if(res.getStatus() == Status.ERROR){
-
-
-                    for(int i = 0; i < this.FINGER_TABLE_SIZE; i++){
-                        if(this.fingerTable[i].equals(cpn))
-                            this.fingerTable[i] = self;
-                    }
-
-                    if(this.DEBUG_MODE)
-                        System.out.println("> CHORD: find successor failed, trying again.");
-
-                    continue;
-                }
-
-                return ((FindSuccessorResponse)res).getAddress();
-            }
         }
 
+        // Ask the closest match to find key's successor
+        // If the designated peer does not answer find the next closest match
+        while(true){
+
+            SocketAddress cpn = this.closestPrecedingNode(key);
+
+            if(cpn == self)
+                break;
+
+            Response res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
+
+            if(res.getStatus() == Status.ERROR){
+
+
+                for(int i = 0; i < this.FINGER_TABLE_SIZE; i++){
+                    if(this.fingerTable[i].equals(cpn))
+                        this.fingerTable[i] = self;
+                }
+
+                if(this.DEBUG_MODE)
+                    System.out.println("> CHORD: find successor failed, trying again.");
+
+                continue;
+            }
+
+            return ((FindSuccessorResponse)res).getAddress();
+        }
+        
         if(this.DEBUG_MODE)
             System.out.println("> CHORD: find successor failed, could not recover.");
 
@@ -186,47 +188,10 @@ public class Chord {
 
     private void stabilize() {
 
-        SocketAddress successorsPerceivedPredecessorAddr = null;
+        if (this.getSucessor() == this.self) {
 
-        if (this.getSucessor() != this.self) {
-
-            // Find the perceived predecessor of this node's sucessor and there r-sucessor list
-            GetPredecessorRequest getPredReq = new GetPredecessorRequest();
-            ReconcileSuccessorListRequest recSucReq = new ReconcileSuccessorListRequest();
-            Request[] requestList = {getPredReq,recSucReq};
-            BatchRequest requests = new BatchRequest(requestList);
-            Response responses = MessageListener.sendMessage(requests, this.getSucessor());
-
-            if(responses.getStatus() == Status.ERROR){
-
-                if(this.DEBUG_MODE)
-                    System.out.println("> CHORD: Stabilization failed (get_predecessor/reconcile_succ).");
-                return;
-            }
-            BatchResponse batchResponses = (BatchResponse) responses;
-            GetPredecessorResponse successorsPerceivedPredecessor = (GetPredecessorResponse) batchResponses.getResponses()[0];
-            ReconcileSuccessorListResponse successorsSuccList = (ReconcileSuccessorListResponse) batchResponses.getResponses()[1];
-            
-            // Update successor list
-            SocketAddress [] newSuccList = successorsSuccList.getSuccessorList();
-            for(int i = 0; i < this.SUCESSOR_LIST_SIZE - 1; i++)
-                this.successorList[i+1] = newSuccList[i];
-
-            successorsPerceivedPredecessorAddr = successorsPerceivedPredecessor.getAddress();
-
-            // Sucessor has no predecessor, notify him
-            if (successorsPerceivedPredecessorAddr == null) {
-                Response res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
-
-                if(res.getStatus() == Status.ERROR && this.DEBUG_MODE)
-                    System.out.println("> CHORD: Stabilization failed (notify on successor A).");
-
-                return;
-            }
-
-        } else {
             // Successor is self
-            successorsPerceivedPredecessorAddr = this.predecessor;
+            SocketAddress successorsPerceivedPredecessorAddr = this.predecessor;
 
             if (successorsPerceivedPredecessorAddr != null){
                 
@@ -237,8 +202,44 @@ public class Chord {
             return;
         }
 
-        UUID successorsPerceivedPredecessorID = successorsPerceivedPredecessorAddr.getPeerID();
+        // Send a batch-request containing a perceived predecessor and r-list request
+        GetPredecessorRequest getPredReq = new GetPredecessorRequest();
+        ReconcileSuccessorListRequest recSucReq = new ReconcileSuccessorListRequest();
+        Request[] requestList = {getPredReq,recSucReq};
+        Response responses = MessageListener.sendMessage(new BatchRequest(requestList), this.getSucessor());
 
+        // Check for errors on the responses
+        if(responses.getStatus() == Status.ERROR){
+
+            if(this.DEBUG_MODE)
+                System.out.println("> CHORD: Stabilization failed (get_predecessor/reconcile_succ).");
+            return;
+        }
+
+        // Fetch request responses
+        BatchResponse batchResponses = (BatchResponse) responses;
+        GetPredecessorResponse successorsPerceivedPredecessor = (GetPredecessorResponse) batchResponses.getResponses()[0];
+        ReconcileSuccessorListResponse successorsSuccList = (ReconcileSuccessorListResponse) batchResponses.getResponses()[1];
+        
+        // Update successor list
+        SocketAddress [] newSuccList = successorsSuccList.getSuccessorList();
+        for(int i = 0; i < this.SUCESSOR_LIST_SIZE - 1; i++)
+            this.successorList[i+1] = newSuccList[i];
+
+        SocketAddress successorsPerceivedPredecessorAddr = successorsPerceivedPredecessor.getAddress();
+
+        // Sucessor has no predecessor, notify him
+        if (successorsPerceivedPredecessorAddr == null) {
+            Response res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
+
+            if(res.getStatus() == Status.ERROR && this.DEBUG_MODE)
+                System.out.println("> CHORD: Stabilization failed (notify on successor A).");
+
+            return;
+        }
+
+        // No need to notify self
+        UUID successorsPerceivedPredecessorID = successorsPerceivedPredecessorAddr.getPeerID();
         if(successorsPerceivedPredecessorID.equals(self.getPeerID()))
             return;
 
@@ -294,6 +295,7 @@ public class Chord {
 
             this.fingerTable[next] = newFinger;
         }
+
         if (DEBUG_MODE)
             System.out.println("> CHORD: Added " + newFinger);
 
@@ -328,12 +330,11 @@ public class Chord {
 
     public void initThreads() {
 
-        this.periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
-
         Runnable t1 = () -> { try{Chord.chordInstance.stabilize();} catch(Exception ex){ ex.printStackTrace();}};
         Runnable t2 = () -> { try{Chord.chordInstance.fixFingers();} catch(Exception ex){ ex.printStackTrace();}};
         Runnable t3 = () -> { try{Chord.chordInstance.checkPredecessor();} catch(Exception ex){ ex.printStackTrace();}};
 
+        // The threads are started with a delay to avoid them running at the same time
         this.periodicThreadPool.scheduleAtFixedRate(t1, 0, this.STABILIZE_INTERVAL_MS, TimeUnit.MILLISECONDS);
         this.periodicThreadPool.scheduleAtFixedRate(t2, 200, this.FIX_FINGERS_INTERVAL_MS, TimeUnit.MILLISECONDS);
         this.periodicThreadPool.scheduleAtFixedRate(t3, 400, this.CHECK_PREDECESSOR_INTERVAL_MS, TimeUnit.MILLISECONDS);
@@ -342,16 +343,13 @@ public class Chord {
 
     private void initKeyLookupSteps() {
 
-        BigInteger maxV = new BigInteger(String.valueOf(2));
-        maxV = maxV.pow(this.FINGER_TABLE_SIZE);
+        BigInteger maxV = new BigInteger(String.valueOf(2)).pow(this.FINGER_TABLE_SIZE);
+
         for (int i = 0; i < this.FINGER_TABLE_SIZE; i++) {
-            BigInteger nextVal = Chord.convertToBigInteger(this.self.getPeerID());
             int step = (int) Math.pow(2, i);
-            nextVal = nextVal.add(new BigInteger(String.valueOf(step + "")));
-
-            nextVal = nextVal.mod(maxV);
+            BigInteger nextVal = Chord.convertToBigInteger(this.self.getPeerID());
+            nextVal = nextVal.add(new BigInteger(String.valueOf(step + ""))).mod(maxV);
             UUID neededID = Chord.convertFromBigInteger(nextVal);
-
             this.stepValues[i] = neededID;
         }
     }
@@ -386,30 +384,6 @@ public class Chord {
         
         return acDif.compareTo(bcDif);
     }
-
-    public String state() {
-
-        String message = "Chord state: \n";
-        message += "  - Self" + "\n";
-        message += "  > " + self + "\n";
-        message += "  - Predecessor" + "\n";
-        message += "  > " + predecessor + "\n";
-        message += "  - Successor" + "\n";
-        message += "  > " + this.getSucessor() + "\n";
-        message += "  - Finger table" + "\n";
-        for (int i = 0; i < this.fingerTable.length; i++) {
-            message += "  > entry #" + i + " - " + this.fingerTable[i] + "\n";
-        }
-        message += "  - Successor list" + "\n";
-        for (int i = 0; i < this.successorList.length; i++) {
-            message += "  > entry #" + i + " - " + this.successorList[i] + "\n";
-        }
-
-
-        return message;
-    }
-
-
 
     // TODO: Move this from here
 
@@ -454,5 +428,27 @@ public class Chord {
         
         return neededID;
         
+    }
+
+    public String state() {
+
+        String message = "Chord state: \n";
+        message += "  - Self" + "\n";
+        message += "  > " + self + "\n";
+        message += "  - Predecessor" + "\n";
+        message += "  > " + predecessor + "\n";
+        message += "  - Successor" + "\n";
+        message += "  > " + this.getSucessor() + "\n";
+        message += "  - Finger table" + "\n";
+        for (int i = 0; i < this.fingerTable.length; i++) {
+            message += "  > entry #" + i + " - " + this.fingerTable[i] + "\n";
+        }
+        message += "  - Successor list" + "\n";
+        for (int i = 0; i < this.successorList.length; i++) {
+            message += "  > entry #" + i + " - " + this.successorList[i] + "\n";
+        }
+
+
+        return message;
     }
 }
