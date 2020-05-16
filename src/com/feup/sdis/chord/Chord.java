@@ -91,7 +91,7 @@ public class Chord {
         return this.successorList;
     }
 
-    private SocketAddress getSucessor() {
+    public SocketAddress getSucessor() {
 
         return this.fingerTable[0];
     }
