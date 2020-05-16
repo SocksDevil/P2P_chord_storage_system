@@ -1,5 +1,6 @@
 package com.feup.sdis.model;
 
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.peer.Constants;
 
 import java.io.*;
@@ -7,20 +8,29 @@ import java.io.*;
 public class StoredChunkInfo implements Serializable {
 
     final private String fileID;
-    final int desiredReplicationDegree;
+    int desiredReplicationDegree;
     final int chunkNo;
     final int chunkSize;
-    final private int nChunks;
-    private final String originalFilename;
+    private int nChunks;
+    private String originalFilename;
+    private SocketAddress initiatorPeer;
 
     public StoredChunkInfo(String fileID, int desiredReplicationDegree,
-                           int chunkNo, int chunkSize, int nChunks, String originalFilename) {
+                           int chunkNo, int chunkSize, int nChunks,
+                           String originalFilename, SocketAddress initiatorPeer) {
         this.fileID = fileID;
         this.desiredReplicationDegree = desiredReplicationDegree;
         this.chunkNo = chunkNo;
         this.chunkSize = chunkSize;
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
+        this.initiatorPeer = initiatorPeer;
+    }
+
+    public StoredChunkInfo(String fileID, int chunkNo, int chunkSize) {
+        this.fileID = fileID;
+        this.chunkNo = chunkNo;
+        this.chunkSize = chunkSize;
     }
 
     public String getFileID() {
@@ -56,10 +66,14 @@ public class StoredChunkInfo implements Serializable {
     }
 
     public static String getChunkID(String fileID, int chunkNo){
-        return fileID + "#" + chunkNo;
+        return fileID + Constants.idSeparation + chunkNo;
     }
 
     public String getChunkID(){
         return StoredChunkInfo.getChunkID(fileID, chunkNo);
+    }
+
+    public SocketAddress getInitiatorPeer() {
+        return initiatorPeer;
     }
 }

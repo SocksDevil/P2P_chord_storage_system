@@ -48,17 +48,10 @@
         },
         {
             "type": "java",
-            "name": "Server",
-            "request": "launch",
-            "mainClass": "com.feup.sdis.peer.Server",
-            "args": "25565"
-        },
-        {
-            "type": "java",
             "name": "BACKUP CC r=2",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 5"
         },
         {
             "type": "java",
@@ -108,7 +101,22 @@
             "name": "RESTORE",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mcgun RESTORE c8223975-3365-3215-b46a-df17c9e913d0"
+            // "args": "127.0.0.1 mcgun RESTORE c8223975-3365-3215-b46a-df17c9e913d0"
+            "args": "127.0.0.1 metadias RESTORE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
+        },
+        {
+            "type": "java",
+            "name": "RECLAIM",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 mcgun RECLAIM 1"
+        },
+        {
+            "type": "java",
+            "name": "DELETE",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 metadias DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
         }
     ]
 }

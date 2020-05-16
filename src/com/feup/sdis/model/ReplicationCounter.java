@@ -27,16 +27,33 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         this.updateObject();
     }
 
-    // public synchronized void removeID(String key, String peerId){
-    //     Map<Integer,String> peers = this.getOrDefault(key, new HashMap<>());
-    //     peers.remove(peerId);
-    //     this.files.put(key, peers);
-    //     this.updateObject();
-    // }
+    public synchronized Integer removePeerID(String key, SocketAddress peerId){
+        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
+        Integer repDegree = null;
+        
+        for (Map.Entry<Integer, SocketAddress> entry : peers.entrySet())
+            if (peerId.equals(entry.getValue())) {
+                repDegree = entry.getKey();
+                break;
+            }
+
+        if (repDegree != null)
+            peers.remove(repDegree);
+
+        this.files.put(key, peers);
+        this.updateObject();
+
+        return repDegree;
+    }
 
     public synchronized SocketAddress removeRepDegree(String key, Integer repDegree){
         Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
         SocketAddress addr = peers.remove(repDegree);
+        if(peers.isEmpty()){
+            this.removeChunkInfo(key);
+            this.updateObject();
+            return addr;
+        }
         this.files.put(key, peers);
         this.updateObject();
 
@@ -60,7 +77,7 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         return this.getOrDefault(key, new HashMap<>()).containsKey(repDegree);
     }
 
-    public synchronized SocketAddress getRepDegree(String key, Integer repDegree){
+    public synchronized SocketAddress getPeerAddress(String key, Integer repDegree){
         return this.getOrDefault(key, new HashMap<>()).get(repDegree);
     }
 
