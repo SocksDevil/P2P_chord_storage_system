@@ -28,7 +28,7 @@ import com.feup.sdis.peer.MessageListener;
 /**
  * CHORD TODO
  * 
- * - [ ] Add list of r sucessors as described in the paper 
+ * - [x] Add list of r sucessors as described in the paper 
  * - [x] Move updating threads to a scheduled thread pool 
  * - [ ] Handle peer failing 
  * - [ ] Handle peer shutdown 
@@ -92,12 +92,12 @@ public class Chord {
         return this.successorList;
     }
 
-    public SocketAddress getSucessor() {
+    private SocketAddress getSucessor() {
 
         return this.fingerTable[0];
     }
 
-    public void setSucessor(SocketAddress newSucessor) {
+    private void setSucessor(SocketAddress newSucessor) {
 
         this.fingerTable[0] = newSucessor;
         this.successorList[0] = newSucessor;
@@ -108,30 +108,35 @@ public class Chord {
         SocketAddress bestMatchFingerTable = null;
         SocketAddress bestMatchSuccTable = null;
 
+        // Check finger table
         for (int i = fingerTable.length - 1; i >= 0; i--) {
 
-            if (this.fingerTable[i] == null)
-                continue;
+            // if (this.fingerTable[i] == null)
+            //     continue;
 
-            if (this.betweenTwoKeys(self.getPeerID(), key, this.fingerTable[i].getPeerID(), false, false))
+            if (this.betweenTwoKeys(self.getPeerID(), key, this.fingerTable[i].getPeerID(), false, false)){
+
                 bestMatchFingerTable =  this.fingerTable[i];
+                break;
+            }
         }
 
+        // Check successor list
         for (int i = successorList.length - 1; i >= 0; i--) {
 
-            if (this.betweenTwoKeys(self.getPeerID(), key, this.successorList[i].getPeerID(), false, false))
+            if (this.betweenTwoKeys(self.getPeerID(), key, this.successorList[i].getPeerID(), false, false)){
+
                 bestMatchSuccTable =  this.successorList[i];
+                break;
+            }
 
         }
 
-        if(bestMatchFingerTable == null ||  bestMatchSuccTable == null)
-            return self;
+        // if(bestMatchFingerTable == null ||  bestMatchSuccTable == null)
+        //     return self;
 
-        if(compareDistanceToKey(bestMatchFingerTable.getPeerID(), bestMatchSuccTable.getPeerID(), key) <= 0)
-            return bestMatchFingerTable;
-        else
-            return bestMatchSuccTable;
-
+        // Return best match
+        return compareDistanceToKey(bestMatchFingerTable.getPeerID(), bestMatchSuccTable.getPeerID(), key) <= 0 ? bestMatchFingerTable : bestMatchSuccTable;
     }
 
     public SocketAddress lookup(String chunkID, int repDegree ){
@@ -179,7 +184,7 @@ public class Chord {
         return self;
     }
 
-    public void stabilize() {
+    private void stabilize() {
 
         SocketAddress successorsPerceivedPredecessorAddr = null;
 
@@ -272,7 +277,7 @@ public class Chord {
         return false;
     }
 
-    public void fixFingers() {
+    private void fixFingers() {
 
         UUID neededID = this.stepValues[next];
         SocketAddress newFinger = this.findSuccessor(neededID);
@@ -301,7 +306,7 @@ public class Chord {
         return predecessor;
     }
 
-    public void setPredecessor(SocketAddress predecessor) {
+    private void setPredecessor(SocketAddress predecessor) {
         this.predecessor = predecessor;
     }
 
@@ -318,6 +323,20 @@ public class Chord {
             if(DEBUG_MODE)
                 System.out.println("> CHORD: Predecessor failed");
         }
+
+    }
+
+    public void initThreads() {
+
+        this.periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
+
+        Runnable t1 = () -> { try{Chord.chordInstance.stabilize();} catch(Exception ex){ ex.printStackTrace();}};
+        Runnable t2 = () -> { try{Chord.chordInstance.fixFingers();} catch(Exception ex){ ex.printStackTrace();}};
+        Runnable t3 = () -> { try{Chord.chordInstance.checkPredecessor();} catch(Exception ex){ ex.printStackTrace();}};
+
+        this.periodicThreadPool.scheduleAtFixedRate(t1, 0, this.STABILIZE_INTERVAL_MS, TimeUnit.MILLISECONDS);
+        this.periodicThreadPool.scheduleAtFixedRate(t2, 200, this.FIX_FINGERS_INTERVAL_MS, TimeUnit.MILLISECONDS);
+        this.periodicThreadPool.scheduleAtFixedRate(t3, 400, this.CHECK_PREDECESSOR_INTERVAL_MS, TimeUnit.MILLISECONDS);
 
     }
 
@@ -390,19 +409,7 @@ public class Chord {
         return message;
     }
 
-    public void initThreads() {
 
-        this.periodicThreadPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(3);
-
-        Runnable t1 = () -> { try{Chord.chordInstance.stabilize();} catch(Exception ex){ ex.printStackTrace();}};
-        Runnable t2 = () -> { try{Chord.chordInstance.fixFingers();} catch(Exception ex){ ex.printStackTrace();}};
-        Runnable t3 = () -> { try{Chord.chordInstance.checkPredecessor();} catch(Exception ex){ ex.printStackTrace();}};
-
-        this.periodicThreadPool.scheduleAtFixedRate(t1, 0, this.STABILIZE_INTERVAL_MS, TimeUnit.MILLISECONDS);
-        this.periodicThreadPool.scheduleAtFixedRate(t2, 200, this.FIX_FINGERS_INTERVAL_MS, TimeUnit.MILLISECONDS);
-        this.periodicThreadPool.scheduleAtFixedRate(t3, 400, this.CHECK_PREDECESSOR_INTERVAL_MS, TimeUnit.MILLISECONDS);
-
-    }
 
     // TODO: Move this from here
 
