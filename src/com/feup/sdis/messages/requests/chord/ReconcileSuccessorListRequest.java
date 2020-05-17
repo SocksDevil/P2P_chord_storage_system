@@ -12,7 +12,7 @@ public class ReconcileSuccessorListRequest extends Request {
     @Override
     public Response handle() {
         
-        return new ReconcileSuccessorListResponse(Status.SUCCESS,Chord.chordInstance.getSucessorList());
+        return new ReconcileSuccessorListResponse(Status.SUCCESS,Chord.chordInstance.getSuccessorList());
     }
 
     @Override
