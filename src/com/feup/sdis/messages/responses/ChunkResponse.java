@@ -1,5 +1,6 @@
 package com.feup.sdis.messages.responses;
 
+import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 
 
@@ -10,8 +11,9 @@ public class ChunkResponse extends Response {
     private final int replDegree;
     private final int nChunks;
     private final String originalFilename;
+    private final SocketAddress initiatorPeer;
 
-    public ChunkResponse(byte[] data, String fileID, int chunkNo, int replDegree, int nChunks, String originalFilename) {
+    public ChunkResponse(byte[] data, String fileID, int chunkNo, int replDegree, int nChunks, String originalFilename, SocketAddress initiatorPeer) {
         super(Status.SUCCESS);
         this.data = data;
         this.fileID = fileID;
@@ -19,6 +21,7 @@ public class ChunkResponse extends Response {
         this.replDegree = replDegree;
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
+        this.initiatorPeer = initiatorPeer;
     }
 
     public ChunkResponse(Status status, String fileID, int chunkNo) {
@@ -29,6 +32,7 @@ public class ChunkResponse extends Response {
         this.data = null;
         this.replDegree = -1;
         this.nChunks = -1;
+        this.initiatorPeer = null;
     }
 
     public byte[] getData() {
@@ -64,5 +68,9 @@ public class ChunkResponse extends Response {
 
     public String getOriginalFilename() {
         return originalFilename;
+    }
+
+    public SocketAddress getInitiatorPeer() {
+        return initiatorPeer;
     }
 }
