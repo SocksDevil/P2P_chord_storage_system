@@ -10,9 +10,6 @@ import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
 import com.feup.sdis.peer.Peer;
-import com.feup.sdis.peer.SerializationUtils;
-
-import java.lang.instrument.Instrumentation;
 
 import java.util.concurrent.Callable;
 
