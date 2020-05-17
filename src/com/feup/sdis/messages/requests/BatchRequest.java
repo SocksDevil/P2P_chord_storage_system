@@ -1,8 +1,5 @@
 package com.feup.sdis.messages.requests;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.BatchResponse;
@@ -33,7 +30,7 @@ public class BatchRequest extends Request {
         }
 
         
-        Response res = new BatchResponse(Status.SUCCESS,responses);
+        Response res = new BatchResponse(stat,responses);
 
         return res;
     }

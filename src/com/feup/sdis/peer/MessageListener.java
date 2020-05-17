@@ -10,10 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.feup.sdis.messages.responses.NullResponse;
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.requests.Request;
 
 public class MessageListener {
@@ -84,7 +82,7 @@ public class MessageListener {
         try {
 
             if(destination == null)
-                return (T) new NullResponse(Status.ERROR);
+                return null;
             AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
             Future<Void> future = socket.connect(new InetSocketAddress(destination.getIp(), destination.getPort()));
             future.get();
@@ -118,7 +116,7 @@ public class MessageListener {
                 System.out.println("* InterruptedException on sendMessage.");
         }
 
-        return (T) new NullResponse(Status.ERROR);
+        return null;
     }
 
 }

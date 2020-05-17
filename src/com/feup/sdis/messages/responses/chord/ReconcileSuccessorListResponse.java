@@ -6,7 +6,7 @@ import com.feup.sdis.messages.responses.Response;
 
 public class ReconcileSuccessorListResponse extends Response {
 
-    SocketAddress[] successorList;
+    final SocketAddress[] successorList;
 
     public ReconcileSuccessorListResponse(Status status, SocketAddress[] successorList) {
         super(status);

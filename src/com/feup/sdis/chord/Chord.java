@@ -17,10 +17,11 @@ import com.feup.sdis.messages.requests.chord.NotifyRequest;
 import com.feup.sdis.messages.requests.chord.PingRequest;
 import com.feup.sdis.messages.requests.chord.ReconcileSuccessorListRequest;
 import com.feup.sdis.messages.responses.BatchResponse;
-import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.messages.responses.chord.ClosestPrecedingResponse;
 import com.feup.sdis.messages.responses.chord.FindSuccessorResponse;
 import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
+import com.feup.sdis.messages.responses.chord.NotifyResponse;
+import com.feup.sdis.messages.responses.chord.PingResponse;
 import com.feup.sdis.messages.responses.chord.ReconcileSuccessorListResponse;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
@@ -78,12 +79,12 @@ public class Chord {
         // TODO: Remove this, only used to allow for smaller table sizes for testing
         node.setPeerID(Chord.normalizeToSize(node.getPeerID(), FINGER_TABLE_SIZE));
 
-        Response res = MessageListener.sendMessage(new ClosestPrecedingRequest(self), node);
+        ClosestPrecedingResponse res = MessageListener.sendMessage(new ClosestPrecedingRequest(self), node);
 
-        if(res.getStatus() == Status.ERROR)
+        if(res == null || res.getStatus() == Status.ERROR)
             throw new Exception("Could not create chord peer");
 
-        this.setSucessor(((ClosestPrecedingResponse)res).getAddress());
+        this.setSucessor(res.getAddress());
     }
 
     public SocketAddress[] getSucessorList(){
@@ -157,13 +158,13 @@ public class Chord {
         while(true){
 
             SocketAddress cpn = this.closestPrecedingNode(key);
-
+ 
             if(cpn == self)
                 break;
 
-            Response res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
+            FindSuccessorResponse res = MessageListener.sendMessage(new FindSuccessorRequest(key), cpn);
 
-            if(res.getStatus() == Status.ERROR){
+            if(res == null || res.getStatus() == Status.ERROR){
 
 
                 for(int i = 0; i < this.FINGER_TABLE_SIZE; i++){
@@ -206,18 +207,16 @@ public class Chord {
         GetPredecessorRequest getPredReq = new GetPredecessorRequest();
         ReconcileSuccessorListRequest recSucReq = new ReconcileSuccessorListRequest();
         Request[] requestList = {getPredReq,recSucReq};
-        Response responses = MessageListener.sendMessage(new BatchRequest(requestList), this.getSucessor());
+        BatchResponse batchResponses = MessageListener.sendMessage(new BatchRequest(requestList), this.getSucessor());
 
         // Check for errors on the responses
-        if(responses.getStatus() == Status.ERROR){
+        if(batchResponses == null || batchResponses.getStatus() == Status.ERROR){
 
             if(this.DEBUG_MODE)
                 System.out.println("> CHORD: Stabilization failed (get_predecessor/reconcile_succ).");
             return;
         }
 
-        // Fetch request responses
-        BatchResponse batchResponses = (BatchResponse) responses;
         GetPredecessorResponse successorsPerceivedPredecessor = (GetPredecessorResponse) batchResponses.getResponses()[0];
         ReconcileSuccessorListResponse successorsSuccList = (ReconcileSuccessorListResponse) batchResponses.getResponses()[1];
         
@@ -230,9 +229,9 @@ public class Chord {
 
         // Sucessor has no predecessor, notify him
         if (successorsPerceivedPredecessorAddr == null) {
-            Response res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
+            NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
 
-            if(res.getStatus() == Status.ERROR && this.DEBUG_MODE)
+            if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
                 System.out.println("> CHORD: Stabilization failed (notify on successor A).");
 
             return;
@@ -253,9 +252,9 @@ public class Chord {
                 System.out.println("> CHORD: Sucessor updated to " + successorsPerceivedPredecessorAddr);
         }
 
-        Response res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
+        NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
 
-        if(res.getStatus() == Status.ERROR && this.DEBUG_MODE)
+        if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
             System.out.println("> CHORD: Stabilization failed (notify on successor B).");
             
         return;
@@ -317,9 +316,9 @@ public class Chord {
         if(this.predecessor == null)
             return;
 
-        Response res = MessageListener.sendMessage(new PingRequest(), predecessor);
+        PingResponse res = MessageListener.sendMessage(new PingRequest(), predecessor);
 
-        if(res.getStatus().equals(Status.ERROR)){
+        if(res == null || res.getStatus().equals(Status.ERROR)){
 
             this.predecessor = null;
             if(DEBUG_MODE)
