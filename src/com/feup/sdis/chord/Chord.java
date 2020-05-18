@@ -199,6 +199,9 @@ public class Chord {
                     this.setSuccessor(self);
                 }
            }
+           else{
+               break;
+           }
        }
 
        return batchResponses;
@@ -236,8 +239,7 @@ public class Chord {
         
         // Update successor list
         SocketAddress [] newSuccList = successorsSuccList.getSuccessorList();
-        for(int i = 0; i < this.SUCESSOR_LIST_SIZE - 1; i++)
-            this.successorList[i+1] = newSuccList[i];
+        System.arraycopy(newSuccList, 0, this.successorList, 1, this.SUCESSOR_LIST_SIZE - 1);
 
         SocketAddress successorsPerceivedPredecessorAddr = successorsPerceivedPredecessor.getAddress();
 
@@ -246,7 +248,7 @@ public class Chord {
             NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSuccessor());
 
             if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
-                System.out.println("> CHORD: Stabilization failed (notify on successor A).");
+                System.out.println("> CHORD: Stabilization failed (notify on successor).");
 
             return;
         }
@@ -267,9 +269,8 @@ public class Chord {
         NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSuccessor());
 
         if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
-            System.out.println("> CHORD: Stabilization failed (notify on successor B).");
+            System.out.println("> CHORD: Stabilization failed (notify on successor ).");
             
-        return;
     }
 
     public boolean notify(SocketAddress newPred) {
@@ -280,7 +281,7 @@ public class Chord {
                 candidateID, false, false)) {
 
             if (DEBUG_MODE)
-                System.out.println("> CHORD: B Predecessor updated to " + newPred);
+                System.out.println("> CHORD: Predecessor updated to " + newPred);
             this.predecessor = newPred;
 
             return true;
