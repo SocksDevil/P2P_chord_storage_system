@@ -10,9 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.UserPrincipal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.naming.directory.InvalidAttributeValueException;
 
@@ -42,12 +43,40 @@ public class Backup extends Action {
             return e.getMessage();
         }
 
+        List<Future<String>> backupCalls = new ArrayList<>();
         for (int i = 0; i < this.repDegree; i++) {
             for (int j = 0; j < this.file.getNChunks(); j++) {
 
-                BSDispatcher.servicePool.execute(new ChunkBackup(file.getfileID(), j, i,
-                        this.chunks.get(j), this.file.getNChunks(), this.repDegree, file.getOriginalFilename()));
+                backupCalls.add(BSDispatcher.servicePool.submit(new ChunkBackup(file.getfileID(), j, i,
+                        this.chunks.get(j), this.file.getNChunks(), this.repDegree, file.getOriginalFilename())));
             }
+        }
+
+
+        List<String> backupReturnCodes = backupCalls.stream()
+                .map(backupCall -> {
+                    try {
+                        return backupCall.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+
+                    return "Unknown error!";
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (backupReturnCodes.size() != 0) {
+            Store.instance().getBackedUpFiles().remove(this.file.getfileID());
+            for (int i = 0; i < this.repDegree; i++) {
+                for (int j = 0; j < this.file.getNChunks(); j++) {
+                    Delete.deleteChunk(j, i, file.getfileID());
+                }
+            }
+            StringBuilder error = new StringBuilder("Failed to backup file with the following errors: \n");
+            for(String returnCode: backupReturnCodes)
+                error.append("\t - ").append(returnCode).append("\n");
+            System.out.println(error);
+            return error.toString();
         }
         return "Backed up file";
     }
