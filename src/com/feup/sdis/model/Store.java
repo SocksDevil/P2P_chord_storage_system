@@ -62,13 +62,26 @@ public class Store {
         return false;
     }
 
-    // Returns null if empty
     public synchronized StoredChunkInfo popChunkFromStored(){
         if(this.storedFiles.size() == 0)
             return null;
+
+        int maxFound = -1;
+        String chunkToPop = null;
+        for (Map.Entry<String,StoredChunkInfo> entry : this.storedFiles.entrySet()) {
+            int chunkSize = entry.getValue().chunkSize;
+            if (chunkSize == Constants.BLOCK_SIZE) { // there wont be bigger chunks
+                chunkToPop = entry.getKey();
+                break;
+            }
+
+            if (chunkSize > maxFound) {
+                maxFound = chunkSize;
+                chunkToPop = entry.getKey();
+            }
+        }
         
-        Map.Entry<String,StoredChunkInfo> entry = this.storedFiles.entrySet().iterator().next();        
-        return this.storedFiles.remove(entry.getKey());
+        return this.storedFiles.remove(chunkToPop);
     }
 
 }
