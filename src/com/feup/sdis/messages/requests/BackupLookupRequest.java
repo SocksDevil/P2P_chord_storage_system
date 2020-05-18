@@ -90,8 +90,8 @@ public class BackupLookupRequest extends Request {
             // Responsible peer save redirect
             if(!this.redirected ){
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
-                Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
             }
+            Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
 
             // Successfully found
             return lookupRequestAnswer;
