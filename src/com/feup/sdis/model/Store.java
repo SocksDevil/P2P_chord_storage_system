@@ -41,6 +41,10 @@ public class Store {
 
 
     public synchronized int getUsedDiskSpace() {
+        return this.usedSpace;
+    }
+
+    public synchronized int getEffectiveUsedDiskSpace() {
         int total = 0;
         for (Map.Entry<String, StoredChunkInfo> entry : storedFiles.entrySet()) {
             total += entry.getValue().chunkSize;
@@ -62,13 +66,28 @@ public class Store {
         return false;
     }
 
+    public synchronized boolean decrementSpace(int length) {
+        if(this.usedSpace - length >= 0){
+            this.usedSpace -= length;
+            return true;
+        }
+        return false;
+    }
+
     // Returns null if empty
-    public synchronized StoredChunkInfo popChunkFromStored(){
+    public synchronized StoredChunkInfo getChunkCandidate(){
         if(this.storedFiles.size() == 0)
             return null;
+
+        for (Map.Entry<String, StoredChunkInfo> entry : this.storedFiles.entrySet())
+            if (!entry.getValue().pendingDeletion()){
+                StoredChunkInfo storedChunkInfo = entry.getValue();
+                storedChunkInfo.setPendingDeletion(true);
+                this.storedFiles.put(storedChunkInfo.getChunkID(), storedChunkInfo);
+                return storedChunkInfo;
+            }
         
-        Map.Entry<String,StoredChunkInfo> entry = this.storedFiles.entrySet().iterator().next();        
-        return this.storedFiles.remove(entry.getKey());
+        return null;       
     }
 
 }

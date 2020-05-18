@@ -106,10 +106,17 @@
         },
         {
             "type": "java",
-            "name": "RECLAIM",
+            "name": "RECLAIM 1",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
             "args": "127.0.0.1 fellow_ooffer RECLAIM 2"
+        },
+        {
+            "type": "java",
+            "name": "RECLAIM 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 metadias RECLAIM 0"
         },
         {
             "type": "java",

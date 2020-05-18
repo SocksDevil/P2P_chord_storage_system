@@ -1,5 +1,7 @@
 package com.feup.sdis.actions;
 
+import java.util.concurrent.Future;
+
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
@@ -51,13 +53,14 @@ public class Delete extends Action {
         return "Successfully requested file deletion";
     }
 
-    public static void deleteChunk(int chunkNumber, int replNo, String fileID) {
-        BSDispatcher.servicePool.execute(() -> {
+    public static Future<?> deleteChunk(int chunkNumber, int replNo, String fileID) {
+        return BSDispatcher.servicePool.submit(() -> {
             final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
 
             final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
-            System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
+            System.out.println(
+                    "Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
             if (deleteResponse == null) {
@@ -67,14 +70,15 @@ public class Delete extends Action {
 
             switch (deleteResponse.getStatus()) {
                 case SUCCESS:
-                    System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
+                    System.out.println(
+                            "Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
                     break;
                 case FILE_NOT_FOUND:
                     System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
                     break;
                 default:
-                    System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
-                            ", got error " + deleteResponse.getStatus());
+                    System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo + ", got error "
+                            + deleteResponse.getStatus());
             }
         });
     }

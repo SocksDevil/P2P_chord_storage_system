@@ -44,7 +44,7 @@ public class DeleteRequest extends Request {
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, Chord.chordInstance.getSuccessor());
 
-            if (deleteResponse == null || deleteRequest.getConnection() == null) {
+            if (deleteResponse == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
                 return new DeleteResponse(Status.ERROR, fileID, chunkNo, replNo);
             }
@@ -61,7 +61,8 @@ public class DeleteRequest extends Request {
 
         // this peer has the chunk
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
-        store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
+        if(!storedChunkInfo.pendingDeletion())
+            store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
         store.getStoredFiles().remove(chunkID);
         store.getBackedUpFiles().remove(fileID);
 

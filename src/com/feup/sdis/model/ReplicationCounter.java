@@ -81,6 +81,14 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         return this.getOrDefault(key, new HashMap<>()).get(repDegree);
     }
 
+    public synchronized Integer getRepDegree(String key, SocketAddress peerId){
+        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
+        for (Map.Entry<Integer, SocketAddress> entry : peers.entrySet())
+            if (peerId.equals(entry.getValue()))
+                return entry.getKey();
+        return null;
+    }
+
     @Override
     public synchronized Map<Integer, SocketAddress> getOrDefault(String s, Map<Integer, SocketAddress> map) {
         return super.getOrDefault(s, Collections.synchronizedMap(map));
