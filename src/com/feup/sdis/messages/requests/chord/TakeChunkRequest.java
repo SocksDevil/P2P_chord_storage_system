@@ -29,7 +29,7 @@ public class TakeChunkRequest extends DeleteRequest {
     @Override
     public Response handle() {
         final DeleteResponse response = super.deleteChunk();
-        final StoredChunkInfo chunkInfo = Store.instance().getStoredFiles().get(fileID);
+        final StoredChunkInfo chunkInfo = Store.instance().getStoredFiles().get(StoredChunkInfo.getChunkID(fileID, chunkNo));
         final int nChunks = chunkInfo.getnChunks();
         final String originalFileName = chunkInfo.getOriginalFilename();
         final SocketAddress initiatorPeer = chunkInfo.getInitiatorPeer();
@@ -61,10 +61,10 @@ public class TakeChunkRequest extends DeleteRequest {
                 returnStatus = Status.ERROR;
             }
 
-            return new TakeChunkResponse(returnStatus, fileID, chunkNo, replNo, data, nChunks, originalFileName, initiatorPeer);
+            return new TakeChunkResponse(returnStatus, fileID, chunkNo, chunkInfo.getDesiredReplicationDegree(), replNo, data, nChunks, originalFileName, initiatorPeer);
         }
 
         return new TakeChunkResponse(response.getStatus(), response.getFileID(), response.getChunkNo(),
-                response.getReplNo(), null, nChunks, originalFileName, initiatorPeer);
+                chunkInfo.getDesiredReplicationDegree(), replNo, null, nChunks, originalFileName, initiatorPeer);
     }
 }

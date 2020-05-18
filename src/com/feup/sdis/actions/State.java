@@ -44,12 +44,12 @@ public class State extends Action {
 
         final ReplicationCounter reCounter = Store.instance().getReplCount();
         message += "Redirects chunks: " + (reCounter.size() == 0 ? "NONE" : reCounter.size()) + "\n";
-        for (Map.Entry<String, Map<Integer, SocketAddress>> entry : reCounter.entrySet()) {
+        for (Map.Entry<String, Map<Integer, PeerInfo>> entry : reCounter.entrySet()) {
             message += "  - " + entry.getKey() + "\n";
-            for(Map.Entry<Integer, SocketAddress> entry2 : entry.getValue().entrySet()){
+            for(Map.Entry<Integer, PeerInfo> entry2 : entry.getValue().entrySet()){
                 message += "       > rep No: " + entry2.getKey() + "\n";
-                message += "       > redirect: " + (entry2.getValue().equals(Peer.addressInfo) ? "no" : "yes")  + "\n";
-                message += "       > socket address: " + entry2.getValue() + "\n";
+                message += "       > redirect: " + (entry2.getValue().getAddress().equals(Peer.addressInfo) ? "no" : "yes")  + "\n";
+                message += "       > socket address: " + entry2.getValue().getAddress() + "\n";
             }
         }
 

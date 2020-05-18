@@ -5,6 +5,7 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
@@ -29,13 +30,15 @@ public class DeleteRequest extends Request {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
-        final SocketAddress chunkOwner = store.getReplCount().getPeerAddress(chunkID, replNo);
+        final PeerInfo chunkOwnerInfo = store.getReplCount().getPeerAddress(chunkID, replNo);
         store.getReplCount().removeRepDegree(chunkID, replNo);
 
-        if (chunkOwner == null) {
+        if (chunkOwnerInfo == null) {
             System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
             return new DeleteResponse(Status.FILE_NOT_FOUND, fileID, chunkNo, replNo);
         }
+
+        final SocketAddress chunkOwner = chunkOwnerInfo.getAddress();
         if (!store.getStoredFiles().containsKey(chunkID) || !chunkOwner.equals(Peer.addressInfo)) { // must delete in redirects
 
             System.out.println("> DELETE: Redirect to " + chunkOwner + " - " + chunkID + " rep " + replNo);
@@ -43,7 +46,7 @@ public class DeleteRequest extends Request {
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, Chord.chordInstance.getSuccessor());
 
-            if (deleteResponse == null || deleteRequest.getConnection() == null) {
+            if (deleteResponse == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
                 return new DeleteResponse(Status.ERROR, fileID, chunkNo, replNo);
             }
