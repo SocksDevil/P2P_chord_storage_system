@@ -84,25 +84,25 @@ public class Chord {
         if(res == null || res.getStatus() == Status.ERROR)
             throw new Exception("Could not create chord peer");
 
-        this.setSucessor(res.getAddress());
+        this.setSuccessor(res.getAddress());
     }
 
-    public SocketAddress[] getSucessorList(){
+    public SocketAddress[] getSuccessorList(){
 
         return this.successorList;
     }
 
-    public SocketAddress getSucessor() {
+    public SocketAddress getSuccessor() {
 
         return this.fingerTable[0];
     }
 
-    private synchronized void setSucessor(SocketAddress newSucessor) {
+    private synchronized void setSuccessor(SocketAddress newSuccessor) {
 
         if (DEBUG_MODE)
-            System.out.println("> CHORD: A Successor updated to " + newSucessor);
-        this.fingerTable[0] = newSucessor;
-        this.successorList[0] = newSucessor;
+            System.out.println("> CHORD: A Successor updated to " + newSuccessor);
+        this.fingerTable[0] = newSuccessor;
+        this.successorList[0] = newSuccessor;
     }
 
     private SocketAddress getBestMatch(SocketAddress[] arr, UUID key){
@@ -156,9 +156,6 @@ public class Chord {
             
             if(this.DEBUG_MODE)
                 System.out.println("> CHORD: find successor failed, trying again.");
-            
-            continue;
-            
         }
         
         if(this.DEBUG_MODE)
@@ -169,9 +166,9 @@ public class Chord {
 
     public SocketAddress findSuccessor(UUID key) {
 
-        // The current peer is the closeste preceding node from key
-        if (this.betweenTwoKeys(this.self.getPeerID(), this.getSucessor().getPeerID(), key, false, true)) 
-            return this.getSucessor();
+        // The current peer is the closest preceding node from key
+        if (this.betweenTwoKeys(this.self.getPeerID(), this.getSuccessor().getPeerID(), key, false, true))
+            return this.getSuccessor();
     
         return this.queryPeersForSuccessorOf(key);
     }
@@ -186,20 +183,20 @@ public class Chord {
            GetPredecessorRequest getPredReq = new GetPredecessorRequest();
            ReconcileSuccessorListRequest recSucReq = new ReconcileSuccessorListRequest();
            Request[] requestList = {getPredReq,recSucReq};
-           batchResponses = MessageListener.sendMessage(new BatchRequest(requestList), this.getSucessor());
+           batchResponses = MessageListener.sendMessage(new BatchRequest(requestList), this.getSuccessor());
 
            // Check for errors on the responses
            if(batchResponses == null || batchResponses.getStatus() == Status.ERROR){
 
                 if(i != this.successorList.length - 1){
 
-                    this.setSucessor(this.successorList[i + 1]);
+                    this.setSuccessor(this.successorList[i + 1]);
 
                     if(this.DEBUG_MODE)
                         System.out.println("> CHORD: Stabilization failed. Trying next successor from list.");
                 }
                 else{
-                    this.setSucessor(self);
+                    this.setSuccessor(self);
                 }
            }
        }
@@ -209,15 +206,15 @@ public class Chord {
 
     private void stabilize() {
 
-        if (this.getSucessor() == this.self) {
+        if (this.getSuccessor() == this.self) {
 
             // Successor is self
             SocketAddress successorsPerceivedPredecessorAddr = this.predecessor;
 
             if (successorsPerceivedPredecessorAddr != null){
                 
-                // If the sucessor is self, and the predecessor is a different peer, the successor should now be that peer
-                this.setSucessor(successorsPerceivedPredecessorAddr);
+                // If the successor is self, and the predecessor is a different peer, the successor should now be that peer
+                this.setSuccessor(successorsPerceivedPredecessorAddr);
 
             }
 
@@ -244,9 +241,9 @@ public class Chord {
 
         SocketAddress successorsPerceivedPredecessorAddr = successorsPerceivedPredecessor.getAddress();
 
-        // Sucessor has no predecessor, notify him
+        // Successor has no predecessor, notify him
         if (successorsPerceivedPredecessorAddr == null) {
-            NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
+            NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSuccessor());
 
             if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
                 System.out.println("> CHORD: Stabilization failed (notify on successor A).");
@@ -259,15 +256,15 @@ public class Chord {
         if(successorsPerceivedPredecessorID.equals(self.getPeerID()))
             return;
 
-        // Update the sucessor
-        if (this.betweenTwoKeys(this.self.getPeerID(), this.getSucessor().getPeerID(), successorsPerceivedPredecessorID,
+        // Update the successor
+        if (this.betweenTwoKeys(this.self.getPeerID(), this.getSuccessor().getPeerID(), successorsPerceivedPredecessorID,
                 false, false)) {
 
-            this.setSucessor(successorsPerceivedPredecessorAddr);
+            this.setSuccessor(successorsPerceivedPredecessorAddr);
 
         }
 
-        NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSucessor());
+        NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self), this.getSuccessor());
 
         if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
             System.out.println("> CHORD: Stabilization failed (notify on successor B).");
@@ -452,7 +449,7 @@ public class Chord {
         message += "  - Predecessor" + "\n";
         message += "  > " + predecessor + "\n";
         message += "  - Successor" + "\n";
-        message += "  > " + this.getSucessor() + "\n";
+        message += "  > " + this.getSuccessor() + "\n";
         message += "  - Finger table" + "\n";
         for (int i = 0; i < this.fingerTable.length; i++) {
             message += "  > entry #" + i + " - " + this.fingerTable[i] + "\n";

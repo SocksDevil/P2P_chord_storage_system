@@ -62,7 +62,7 @@ public class BackupLookupRequest extends Request {
                 // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
-            System.out.println("> BACKUP LOOKUP: Redirect to " + Chord.chordInstance.getSucessor() + " - " + chunkID + " rep " + currReplication);
+            System.out.println("> BACKUP LOOKUP: Redirect to " + Chord.chordInstance.getSuccessor() + " - " + chunkID + " rep " + currReplication);
 
             // Responsible peer save redirect
             if(!this.redirected){
@@ -70,7 +70,7 @@ public class BackupLookupRequest extends Request {
             }
             
             // Get successor
-            final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSucessor(), this.chunkLength, true);
+            final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSuccessor(), this.chunkLength, true);
             final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
             // This should never happen
