@@ -1,5 +1,6 @@
 package com.feup.sdis.messages.requests;
 
+import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.DeleteResponse;
@@ -41,7 +42,7 @@ public class DeleteRequest extends Request {
             System.out.println("> DELETE: Redirect to " + chunkOwner + " - " + chunkID + " rep " + replNo);
 
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
-            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, chunkOwner);
+            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, Chord.chordInstance.getSuccessor());
 
             if (deleteResponse == null || deleteRequest.getConnection() == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
