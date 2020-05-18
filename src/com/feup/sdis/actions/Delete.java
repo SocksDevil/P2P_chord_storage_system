@@ -36,44 +36,46 @@ public class Delete extends Action {
         final DeleteFileInfo deleteFileInfoReq = new DeleteFileInfo(fileID);
         final DeleteFileInfoResponse deleteFileInfoRes = MessageListener.sendMessage(deleteFileInfoReq, backupInitiatorPeer);
 
-        if(deleteFileInfoRes == null || deleteFileInfoRes.getStatus() != Status.SUCCESS) {
+        if (deleteFileInfoRes == null || deleteFileInfoRes.getStatus() != Status.SUCCESS) {
             final String error = "Error removing file " + fileID + " info from peer " + backupInitiatorPeer;
             System.out.println(error);
             return error;
         }
 
-        for(int chunkNo = 0; chunkNo < nChunks; chunkNo++) {
+        for (int chunkNo = 0; chunkNo < nChunks; chunkNo++) {
             for (int replDegree = 0; replDegree < desiredRepl; replDegree++) {
-                int chunkNumber = chunkNo;
-                int replNo = replDegree;
-                BSDispatcher.servicePool.execute(() -> {
-                    final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
-
-                    final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
-                    final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
-                    System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
-                    final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
-
-                    if (deleteResponse == null) {
-                        System.out.println("Could not read DELETE response for chunk " + chunkNumber);
-                        return;
-                    }
-
-                    switch (deleteResponse.getStatus()) {
-                        case SUCCESS:
-                            System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
-                            break;
-                        case FILE_NOT_FOUND:
-                            System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
-                            break;
-                        default:
-                            System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
-                                    ", got error " + deleteResponse.getStatus());
-                    }
-                });
+                deleteChunk(chunkNo, replDegree, fileID);
             }
         }
 
         return "Successfully requested file deletion";
+    }
+
+    public static void deleteChunk(int chunkNumber, int replNo, String fileID) {
+        BSDispatcher.servicePool.execute(() -> {
+            final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
+
+            final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
+            final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
+            System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
+            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
+
+            if (deleteResponse == null) {
+                System.out.println("Could not read DELETE response for chunk " + chunkNumber);
+                return;
+            }
+
+            switch (deleteResponse.getStatus()) {
+                case SUCCESS:
+                    System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
+                    break;
+                case FILE_NOT_FOUND:
+                    System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
+                    break;
+                default:
+                    System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
+                            ", got error " + deleteResponse.getStatus());
+            }
+        });
     }
 }
