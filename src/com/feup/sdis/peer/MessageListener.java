@@ -46,7 +46,7 @@ public class MessageListener {
                     if(socket != null && socket.isOpen()){
                         Request request = SerializationUtils.deserialize(socket);
                         if (request == null){
-                            System.out.println("* Request as null.");
+                            System.out.println("* Request is null.");
                             return;
                         }
 
