@@ -45,8 +45,10 @@ public class MessageListener {
 
                     if(socket != null && socket.isOpen()){
                         Request request = SerializationUtils.deserialize(socket);
-                        if (request == null)
+                        if (request == null){
+                            System.out.println("* Request is null.");
                             return;
+                        }
 
                         Response response = request.handle();
 
@@ -56,7 +58,7 @@ public class MessageListener {
                             socket.shutdownOutput();
                             socket.close();
                         } catch (IOException e) {
-                            if(DEBUG_MODE )
+                            // if(DEBUG_MODE )
                                 System.out.println("* Socket shutdown/close failed on MessageListener.");
                         }
                     }
@@ -64,7 +66,7 @@ public class MessageListener {
 
                 @Override
                 public void failed(Throwable throwable, Object att) {
-                    if(DEBUG_MODE )
+                    // if(DEBUG_MODE )
                         System.out.println("* Socket accept failed on MessageListener.");
                 }
             });
@@ -79,6 +81,8 @@ public class MessageListener {
     public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         try {
 
+            if(destination == null)
+                return null;
             AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
             Future<Void> future = socket.connect(new InetSocketAddress(destination.getIp(), destination.getPort()));
             future.get();
@@ -111,7 +115,7 @@ public class MessageListener {
             if(DEBUG_MODE)
                 System.out.println("* InterruptedException on sendMessage.");
         }
-        
+
         return null;
     }
 

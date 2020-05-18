@@ -4,10 +4,10 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.Response;
 
-public class ClosestPreceedingResponse extends Response{
+public class ClosestPrecedingResponse extends Response{
     private final SocketAddress address;
 
-    public ClosestPreceedingResponse(Status status, SocketAddress address) {
+    public ClosestPrecedingResponse(Status status, SocketAddress address) {
         super(status);
         this.address = address;
     }
@@ -19,6 +19,6 @@ public class ClosestPreceedingResponse extends Response{
     @Override
     public String toString(){
         
-        return "res: CHD_CLOSEST_PRECEEDING_NODE " + this.address + " STATUS: " + this.getStatus();
+        return "res: CHD_CLOSEST_PRECEDING_NODE " + this.address + " STATUS: " + this.getStatus();
     }
 }

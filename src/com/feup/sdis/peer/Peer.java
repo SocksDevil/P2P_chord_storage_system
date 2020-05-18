@@ -13,16 +13,13 @@ import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
 
-
 public class Peer {
 
     // TODO: ver isto meu puto
     public static SocketAddress addressInfo;
 
-
-    
     /**
-     * Peer hostAddress peerID accessPoint [chordEntryAddress] 
+     * Peer hostAddress peerID accessPoint [chordEntryAddress]
      * 
      */
     public static void main(String[] args) {
@@ -36,8 +33,6 @@ public class Peer {
         String peerPort = args[0];
         String peerID = args[1];
         String accessPoint = args[2];
-
-
 
         int port;
         try {
@@ -69,7 +64,6 @@ public class Peer {
             e1.printStackTrace();
         }
 
-
         BSDispatcher dispatcher = new BSDispatcher();
         try {
             final Dispatcher stub = (Dispatcher) UnicastRemoteObject.exportObject(dispatcher, 0);
@@ -86,7 +80,6 @@ public class Peer {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-
 
         // TODO: move this to a proper place:
 
@@ -121,8 +114,16 @@ public class Peer {
                 return;
             }
 
-            SocketAddress ringBoostrapping = new SocketAddress(bsIP, bsPort, UUID.nameUUIDFromBytes(peerID.getBytes()).toString());
-            Chord.chordInstance = new Chord(addressInfo, ringBoostrapping);
+            SocketAddress ringBoostrapping = new SocketAddress(bsIP, bsPort,
+                    UUID.nameUUIDFromBytes(peerID.getBytes()).toString());
+            try {
+                Chord.chordInstance = new Chord(addressInfo, ringBoostrapping);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+
+                return;
+            }
         } else {
 
             Chord.chordInstance = new Chord(addressInfo);

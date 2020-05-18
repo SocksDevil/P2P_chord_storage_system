@@ -5,5 +5,6 @@ public enum Status {
     FILE_NOT_FOUND,
     NO_SPACE,
     ERROR,
-    UNCHANGED
+    UNCHANGED,
+    CONNECTION_ERROR
 }
