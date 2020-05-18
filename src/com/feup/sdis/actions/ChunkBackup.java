@@ -46,7 +46,6 @@ public class ChunkBackup extends Action implements Callable<String> {
 
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         final SocketAddress addressInfo = this.destinationOverride == null ? Chord.chordInstance.lookup(chunkID, repID) : this.destinationOverride ;
-
         final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
         final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
