@@ -1,22 +1,23 @@
 package com.feup.sdis.model;
 
-import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.chord.TakeChunkRequest;
 
-public class ChunkTransfer {
-    private final SocketAddress address;
+import java.io.Serializable;
+
+public class ChunkTransfer implements Serializable {
     private final TakeChunkRequest request;
+    private final int chunkSize;
 
-    public ChunkTransfer(SocketAddress address, TakeChunkRequest request) {
-        this.address = address;
+    public ChunkTransfer(TakeChunkRequest request, int chunkSize) {
         this.request = request;
-    }
-
-    public SocketAddress getAddress() {
-        return address;
+        this.chunkSize = chunkSize;
     }
 
     public TakeChunkRequest getRequest() {
         return request;
+    }
+
+    public int getChunkSize() {
+        return chunkSize;
     }
 }

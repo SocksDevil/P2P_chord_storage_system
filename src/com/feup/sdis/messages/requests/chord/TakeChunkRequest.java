@@ -29,7 +29,7 @@ public class TakeChunkRequest extends DeleteRequest {
     @Override
     public Response handle() {
         final DeleteResponse response = super.deleteChunk();
-        final StoredChunkInfo chunkInfo = Store.instance().getStoredFiles().get(fileID);
+        final StoredChunkInfo chunkInfo = Store.instance().getStoredFiles().get(StoredChunkInfo.getChunkID(fileID, chunkNo));
         final int nChunks = chunkInfo.getnChunks();
         final String originalFileName = chunkInfo.getOriginalFilename();
         final SocketAddress initiatorPeer = chunkInfo.getInitiatorPeer();

@@ -18,9 +18,9 @@ import com.feup.sdis.messages.requests.chord.*;
 import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.BatchResponse;
-import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.chord.*;
 import com.feup.sdis.model.ChunkTransfer;
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
@@ -275,8 +275,9 @@ public class Chord {
             System.out.println("> CHORD: Stabilization failed (notify on successor ).");
     }
 
-    public void retrieveOwnedChunks(SocketAddress peer) {
-        final TransferChunksResponse transferChunksResponse = MessageListener.sendMessage(new TransferChunksRequest(this.self.getPeerID()), peer);
+    public void retrieveOwnedChunks(SocketAddress peer, UUID predecessor) {
+        final TransferChunksResponse transferChunksResponse = MessageListener.sendMessage(
+                new TransferChunksRequest(this.self.getPeerID(), predecessor), peer);
 
         if (transferChunksResponse == null) {
             System.out.println("Error retrieving chunks from " + peer);
@@ -285,44 +286,31 @@ public class Chord {
 
         for (ChunkTransfer chunkTransfer : transferChunksResponse.getChunkTransfers()) {
             BSDispatcher.servicePool.execute(() -> {
-                final TakeChunkResponse response = MessageListener.sendMessage(chunkTransfer.getRequest(), chunkTransfer.getAddress());
-                if (response == null || response.getStatus() != Status.SUCCESS) {
-                    System.out.println("TransferChunk: Error in response!");
-                }
-
-                final StoredChunkInfo chunkInfo = new StoredChunkInfo(response.getFileID(), response.getReplNo(), response.getChunkNo(),
-                        response.getData().length, response.getnChunks(), response.getOriginalFileName(), response.getInitiatorPeer());
-                if (!Store.instance().incrementSpace(response.getData().length)) {
-                    final BackupLookupResponse lookupRequestAnswer = BackupLookupRequest.backupChunkInSuccessor(StoredChunkInfo.getChunkID(response.getFileID(), response.getChunkNo()),
-                            response.getFileID(), response.getChunkNo(), response.getReplNo(), response.getData().length, false);
-
-                    if (lookupRequestAnswer.getStatus() != Status.SUCCESS) {
-                        System.out.println("Failed to lookup peer for " + response.getChunkNo() + " of file " + response.getFileID() + " with rep " + response.getReplNo());
-                        // TODO: ver return
+                if (Store.instance().incrementSpace(chunkTransfer.getChunkSize())) {
+                    final TakeChunkResponse response = MessageListener.sendMessage(chunkTransfer.getRequest(), peer);
+                    if (response == null || response.getStatus() != Status.SUCCESS) {
+                        System.out.println("TransferChunk: Error in response!");
                     }
 
-                    final BackupRequest backupRequest = new BackupRequest(response.getFileID(),
-                            response.getChunkNo(), response.getReplNo(), response.getData(),
-                            lookupRequestAnswer.getAddress(), response.getnChunks(), response.getOriginalFileName(), Peer.addressInfo);
+                    final StoredChunkInfo chunkInfo = new StoredChunkInfo(response.getFileID(), response.getReplNo(), response.getChunkNo(),
+                            response.getData().length, response.getnChunks(), response.getOriginalFileName(), response.getInitiatorPeer());
 
-                    final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
-                    if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
-                        System.out.println("Successfully stored chunk " + response.getChunkNo() + " with rep " + response.getReplNo() + " in " + lookupRequestAnswer.getAddress());
-                    } else {
-                        System.out.println("Failed to stored chunk " + response.getChunkNo() + " with rep " + response.getReplNo());
+                    try {
+                        chunkInfo.storeFile(response.getData());
+                        Store.instance().getStoredFiles().put(chunkInfo.getChunkID(), chunkInfo);
+                        Store.instance().getReplCount().addNewID(chunkInfo.getChunkID(),
+                                new PeerInfo(Peer.addressInfo, chunkTransfer.getChunkSize()), response.getReplNo());
+                        System.out.println("TransferChunk: sucessfully retrieved " + chunkInfo.getChunkID() + " from " + peer);
+                    } catch (IOException e) {
+                        System.out.println("TransferChunk: Failed to store chunk");
                     }
+                }
 
-                    return;
-                }
-                try {
-                    chunkInfo.storeFile(response.getData());
-                    Store.instance().getStoredFiles().put(chunkInfo.getChunkID(), chunkInfo);
-                    Store.instance().getReplCount().addNewID(chunkInfo.getChunkID(), Peer.addressInfo, response.getReplNo());
-                } catch (IOException e) {
-                    System.out.println("TransferChunk: Failed to store chunk");
-                }
             });
         }
+
+        transferChunksResponse.getRedirects().forEach((redirect) ->
+                Store.instance().getReplCount().addNewID(redirect.getKey(), redirect.getValue().getValue(), redirect.getValue().getKey()));
     }
 
     public boolean notify(SocketAddress newPred) {
@@ -338,8 +326,8 @@ public class Chord {
 
             if (!initialized) {
                 initialized = true;
-                this.retrieveOwnedChunks(predecessor);
-                this.retrieveOwnedChunks(successorList[0]);
+                this.retrieveOwnedChunks(predecessor, predecessor.getPeerID());
+                this.retrieveOwnedChunks(successorList[0], predecessor.getPeerID());
             }
 
             return true;
@@ -446,20 +434,20 @@ public class Chord {
      * HELPER FUNCTIONS
      */
 
-    public boolean betweenTwoKeys(UUID a, UUID b, UUID c, boolean closedLeft, boolean closedRight) {
+    public boolean betweenTwoKeys(UUID lowerBound, UUID upperBound, UUID key, boolean closedLeft, boolean closedRight) {
 
-        if ((closedLeft && c.equals(a)) || (closedRight && c.equals(b)))
+        if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
             return true;
 
-        if ((!closedLeft && c.equals(a)) || (!closedRight && c.equals(b)))
+        if ((!closedLeft && key.equals(lowerBound)) || (!closedRight && key.equals(upperBound)))
             return false;
 
         // Whole circle is valid
-        if (b.equals(a) && !c.equals(a))
+        if (upperBound.equals(lowerBound) && !key.equals(lowerBound))
             return true;
 
-        return (a.compareTo(b) < 0) ? (a.compareTo(c) < 0) && (c.compareTo(b) < 0)
-                : !((b.compareTo(c) < 0) && (c.compareTo(a) < 0));
+        return (lowerBound.compareTo(upperBound) < 0) ? (lowerBound.compareTo(key) < 0) && (key.compareTo(upperBound) < 0)
+                : !((upperBound.compareTo(key) < 0) && (key.compareTo(lowerBound) < 0));
     }
 
     public static int compareDistanceToKey(UUID a, UUID b, UUID c) {

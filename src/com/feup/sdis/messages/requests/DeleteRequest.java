@@ -29,7 +29,7 @@ public class DeleteRequest extends Request {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
-        final SocketAddress chunkOwner = store.getReplCount().getPeerAddress(chunkID, replNo);
+        final SocketAddress chunkOwner = store.getReplCount().getPeerAddress(chunkID, replNo).getAddress();
         store.getReplCount().removeRepDegree(chunkID, replNo);
 
         if (chunkOwner == null) {

@@ -5,6 +5,7 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
@@ -73,7 +74,7 @@ public class BackupLookupRequest extends Request {
         }
 
         System.out.println("> BACKUP LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
-        Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, this.currReplication);
+        Store.instance().getReplCount().addNewID(chunkID, new PeerInfo(Peer.addressInfo, chunkLength), this.currReplication);
         return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
     }
 
@@ -100,7 +101,7 @@ public class BackupLookupRequest extends Request {
         if(!redirected ){
             Store.instance().getReplCount().removeRepDegree(chunkID, currReplication);
         }
-        Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), currReplication);
+        Store.instance().getReplCount().addNewID(chunkID, new PeerInfo(lookupRequestAnswer.getAddress(), chunkLength), currReplication);
 
         // Successfully found
         return lookupRequestAnswer;
