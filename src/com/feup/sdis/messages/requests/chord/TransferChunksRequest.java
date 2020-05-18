@@ -32,7 +32,8 @@ public class TransferChunksRequest extends Request {
                         Chord.chordInstance.generateKey(storedChunk.getKey(),
                                 addressEntry.getKey()),
                         false, true))
-                    chunkTransfers.add(new ChunkTransfer(addressEntry.getValue(), TakeChunkRequest.createRequestFromChunkID(storedChunk.getKey())));
+                    chunkTransfers.add(new ChunkTransfer(addressEntry.getValue(),
+                            TakeChunkRequest.createRequestFromChunkID(storedChunk.getKey(), addressEntry.getKey())));
             }
 
         }

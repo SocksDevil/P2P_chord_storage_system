@@ -1,5 +1,6 @@
 package com.feup.sdis.chord;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.UUID;
@@ -11,9 +12,13 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.messages.Status;
+import com.feup.sdis.messages.requests.BackupLookupRequest;
+import com.feup.sdis.messages.requests.BackupRequest;
 import com.feup.sdis.messages.requests.BatchRequest;
 import com.feup.sdis.messages.requests.Request;
 import com.feup.sdis.messages.requests.chord.*;
+import com.feup.sdis.messages.responses.BackupLookupResponse;
+import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.BatchResponse;
 import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.messages.responses.chord.*;
@@ -207,11 +212,10 @@ public class Chord {
                 else{
                     this.setSuccessor(self.get());
                 }
-           }
-           else{
-               break;
-           }
-       }
+            } else {
+                break;
+            }
+        }
 
         return batchResponses;
     }
@@ -258,7 +262,7 @@ public class Chord {
         if (successorsPerceivedPredecessorAddr == null) {
             NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self.get()), this.getSuccessor());
 
-            if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
+            if ((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
                 System.out.println("> CHORD: Stabilization failed (notify on successor).");
 
             return;
@@ -279,7 +283,7 @@ public class Chord {
 
         NotifyResponse res = MessageListener.sendMessage(new NotifyRequest(self.get()), this.getSuccessor());
 
-        if((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
+        if ((res == null || res.getStatus() == Status.ERROR) && this.DEBUG_MODE)
             System.out.println("> CHORD: Stabilization failed (notify on successor ).");
     }
 
@@ -293,16 +297,42 @@ public class Chord {
 
         for (ChunkTransfer chunkTransfer : transferChunksResponse.getChunkTransfers()) {
             BSDispatcher.servicePool.execute(() -> {
-                final ChunkResponse response = MessageListener.sendMessage(chunkTransfer.getRequest(), chunkTransfer.getAddress());
+                final TakeChunkResponse response = MessageListener.sendMessage(chunkTransfer.getRequest(), chunkTransfer.getAddress());
                 if (response == null || response.getStatus() != Status.SUCCESS) {
                     System.out.println("TransferChunk: Error in response!");
                 }
 
-                final StoredChunkInfo chunkInfo = new StoredChunkInfo(response.getFileID(), response.getReplDegree(), response.getChunkNo(),
-                        response.getData().length, response.getnChunks(), response.getOriginalFilename(), response.getInitiatorPeer());
+                final StoredChunkInfo chunkInfo = new StoredChunkInfo(response.getFileID(), response.getReplNo(), response.getChunkNo(),
+                        response.getData().length, response.getnChunks(), response.getOriginalFileName(), response.getInitiatorPeer());
+                if (!Store.instance().incrementSpace(response.getData().length)) {
+                    final BackupLookupResponse lookupRequestAnswer = BackupLookupRequest.backupChunkInSuccessor(StoredChunkInfo.getChunkID(response.getFileID(), response.getChunkNo()),
+                            response.getFileID(), response.getChunkNo(), response.getReplNo(), response.getData().length, false);
 
-                Store.instance().getStoredFiles().put(chunkInfo.getChunkID(), chunkInfo);
-                Store.instance().getReplCount().addNewID(chunkInfo.getChunkID(), Peer.addressInfo, response.getReplDegree());
+                    if (lookupRequestAnswer.getStatus() != Status.SUCCESS) {
+                        System.out.println("Failed to lookup peer for " + response.getChunkNo() + " of file " + response.getFileID() + " with rep " + response.getReplNo());
+                        // TODO: ver return
+                    }
+
+                    final BackupRequest backupRequest = new BackupRequest(response.getFileID(),
+                            response.getChunkNo(), response.getReplNo(), response.getData(),
+                            lookupRequestAnswer.getAddress(), response.getnChunks(), response.getOriginalFileName(), Peer.addressInfo);
+
+                    final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
+                    if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
+                        System.out.println("Successfully stored chunk " + response.getChunkNo() + " with rep " + response.getReplNo() + " in " + lookupRequestAnswer.getAddress());
+                    } else {
+                        System.out.println("Failed to stored chunk " + response.getChunkNo() + " with rep " + response.getReplNo());
+                    }
+
+                    return;
+                }
+                try {
+                    chunkInfo.storeFile(response.getData());
+                    Store.instance().getStoredFiles().put(chunkInfo.getChunkID(), chunkInfo);
+                    Store.instance().getReplCount().addNewID(chunkInfo.getChunkID(), Peer.addressInfo, response.getReplNo());
+                } catch (IOException e) {
+                    System.out.println("TransferChunk: Failed to store chunk");
+                }
             });
         }
     }

@@ -10,8 +10,8 @@ import com.feup.sdis.model.StoredChunkInfo;
 import java.io.IOException;
 
 public class GetChunkRequest extends Request {
-    protected final String fileID;
-    protected final int chunkNo;
+    private final String fileID;
+    private final int chunkNo;
 
     public GetChunkRequest(String fileID, int chunkNo) {
         this.fileID = fileID;
