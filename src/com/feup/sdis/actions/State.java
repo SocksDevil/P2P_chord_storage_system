@@ -18,6 +18,7 @@ public class State extends Action {
     public String process() {
         final SerializableHashMap<BackupFileInfo> backedFiles = Store.instance().getBackedUpFiles();
         String message = "Peer " + Constants.SENDER_ID + "\n";
+        message += "Used disk space: " + Store.instance().getUsedDiskSpace() + " bytes\n";
         message += "Backed up files: " + (backedFiles.size() == 0 ? "NONE" : backedFiles.size()) + "\n";
         for (Map.Entry<String, BackupFileInfo> entry : backedFiles.entrySet()) {
             final BackupFileInfo file = entry.getValue();
