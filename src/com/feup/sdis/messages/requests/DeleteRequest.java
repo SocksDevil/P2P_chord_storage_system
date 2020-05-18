@@ -14,9 +14,9 @@ import com.feup.sdis.peer.Peer;
 import java.io.File;
 
 public class DeleteRequest extends Request {
-    private final String fileID;
-    private final int chunkNo;
-    private final int replNo;
+    protected final String fileID;
+    protected final int chunkNo;
+    protected final int replNo;
 
     public DeleteRequest(String fileID, int chunkNo, int replNo) {
         this.fileID = fileID;
@@ -24,8 +24,7 @@ public class DeleteRequest extends Request {
         this.replNo = replNo;
     }
 
-    @Override
-    public Response handle() {
+    protected DeleteResponse deleteChunk() {
         final Store store = Store.instance();
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
@@ -62,17 +61,27 @@ public class DeleteRequest extends Request {
         // this peer has the chunk
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
         store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
-        store.getStoredFiles().remove(chunkID);
-        store.getBackedUpFiles().remove(fileID);
 
+        return null;
+    }
+
+    @Override
+    public Response handle() {
+        final Response errorResponse = this.deleteChunk();
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        Store.instance().getStoredFiles().remove(chunkID);
+        Store.instance().getBackedUpFiles().remove(fileID);
+        if (errorResponse != null)
+            return errorResponse;
         Status returnStatus = Status.SUCCESS;
+
         final File fileToDelete = new File(Constants.backupFolder + chunkID);
-        if(!fileToDelete.exists()) {
+        if (!fileToDelete.exists()) {
             System.out.println("> DELETE: Could not find chunk " + chunkID + " on disk");
             returnStatus = Status.FILE_NOT_FOUND;
         }
         // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
-        else if(!fileToDelete.delete()){
+        else if (!fileToDelete.delete()) {
             System.out.println("> DELETE: Failed to delete chunk " + chunkID);
             returnStatus = Status.ERROR;
         }
