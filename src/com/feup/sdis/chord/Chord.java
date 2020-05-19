@@ -97,6 +97,11 @@ public class Chord {
         return this.fingerTable[0];
     }
 
+    public void shutdown(){
+
+        this.periodicThreadPool.shutdown();
+    }
+
     private synchronized void setSuccessor(SocketAddress newSuccessor) {
 
         if (DEBUG_MODE)

@@ -31,7 +31,7 @@ public class BackupLookupRequest extends Request {
     @Override
     public Response handle() {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        System.out.println("<" + chunkID + "> - " + currReplication + " red " + redirected);
+        System.out.println("<" + chunkID + "> - " + currReplication + " rep " + redirected);
 
         // System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkLength + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
         // If it already has this chunk || doesn't have enough space ->
@@ -46,7 +46,7 @@ public class BackupLookupRequest extends Request {
         }
 
         // TODO: make sure that if -> 1 || 2 if 1 is True; 2 is NOT evaluated
-        if(isStored || !Store.instance().incrementSpace(this.chunkLength)){
+        if(Store.instance().getBackedUpFiles().containsKey(fileID) || isStored || !Store.instance().incrementSpace(this.chunkLength)){
 
             // Remove placeholder if no space for chunk
             if(!isStored)
@@ -90,8 +90,8 @@ public class BackupLookupRequest extends Request {
             // Responsible peer save redirect
             if(!this.redirected ){
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
-                Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
             }
+            Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
 
             // Successfully found
             return lookupRequestAnswer;
