@@ -32,7 +32,6 @@ public class ShutdownHandler extends Thread {
 
         // Send stored chunks to successor (chunk backup protocol with overrided destination)
         SerializableHashMap<StoredChunkInfo> chunks = Store.instance().getStoredFiles();
-        int chunkCount = chunks.size();
         System.out.println("> SHUTDOWN: Retrieved chunks from storage(" + chunks.size() + " chunks)");
         System.out.println("> SHUTDOWN: Sending chunks to successor...");
 
@@ -62,39 +61,39 @@ public class ShutdownHandler extends Thread {
         }).collect(Collectors.toList());
 
         int i = 0;
-        int successfullyDeletedChunks = 0;
-        Store store = Store.instance();
+        int unsucessfulDeletions = 0;
 
         // For each successful transfer, delete stored chunk
         for (Map.Entry<String, StoredChunkInfo> chunkEntry : chunks.entrySet()) {
 
             if (backupReturnCodes.get(i) !=  null){
-                i++;
-                continue;
+                unsucessfulDeletions++;
+                System.out.println("> SHUTDOWN: Failed to transfer chunk " + chunkEntry.getKey());
             }
-            System.out.println("> SHUTDOWN: Successfully transfered chunk " + chunkEntry.getKey());
-            
-            // Update storage structures
-            store.incrementSpace(-1 * chunkEntry.getValue().getChunkSize());
-            store.getStoredFiles().remove(chunkEntry.getKey());
-            
-            // Update non-volatile memory
-            final File fileToDelete = new File(Constants.backupFolder + chunkEntry.getValue().getChunkID());
-            if (!fileToDelete.exists()) {
-                System.out.println("> DELETE: Could not find chunk " + chunkEntry.getValue().getChunkID() + " on disk");
-                
-            }
-            // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
-            else if (!fileToDelete.delete()) {
-                System.out.println("> DELETE: Failed to delete chunk " + chunkEntry.getValue().getChunkID());
+            else{
+                System.out.println("> SHUTDOWN: Successfully transfered chunk " + chunkEntry.getKey());
             }
 
             i++;
-            successfullyDeletedChunks++;
+            
         }
 
-        System.out.println("> SHUTDOWN: Transfer complete, " + (chunkCount - successfullyDeletedChunks) + " chunks remaining.");
+        System.out.println("> SHUTDOWN: Transfer complete, " + unsucessfulDeletions + " chunks could not be transfered.");
 
+        final File peerFolder = new File(Constants.peerRootFolder);
+        this.deleteDirectory(peerFolder);
+        System.out.println("> SHUTDOWN: Deleted file system storage");
+
+    }
+
+    private void deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        directoryToBeDeleted.delete();
     }
 
 }
