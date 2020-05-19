@@ -57,6 +57,7 @@ public class Restore extends Action {
                         FileOutputStream fos = new FileOutputStream
                                 (Constants.restoredFolder + response.getOriginalFilename());
                         fos.write(outputStream.toByteArray());
+                        fos.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.out.println("Failed to store file " + fileID);

@@ -2,16 +2,11 @@ package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.model.BackupFileInfo;
-import com.feup.sdis.model.ReplicationCounter;
-import com.feup.sdis.model.SerializableHashMap;
-import com.feup.sdis.model.Store;
-import com.feup.sdis.model.StoredChunkInfo;
+import com.feup.sdis.model.*;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
 
 import java.util.Map;
-import java.util.Set;
 
 public class State extends Action {
     @Override
