@@ -13,4 +13,6 @@ public class Constants {
     public static String peerID; 
     public static final String peerParentFolder = "peers/";
     public static final String idSeparation = "#";
+    public static final int REQUEST_RETRY_INTERVAL_MS = 500;
+    public static final int MAX_REQUEST_RETRIES = 5;
 }

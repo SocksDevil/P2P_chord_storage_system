@@ -4,6 +4,8 @@ import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.actions.Dispatcher;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
+import com.feup.sdis.model.Store;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
@@ -13,6 +15,9 @@ import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
 import java.lang.Runtime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Peer {
 
@@ -130,6 +135,13 @@ public class Peer {
 
         Chord.chordInstance.initThreads();
 
-        Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
+        final ScheduledExecutorService periodicExecutor = Executors.newSingleThreadScheduledExecutor();
+        Runnable t1 = () -> Store.instance().retryRequest();
+        periodicExecutor.scheduleAtFixedRate(t1, 0, Constants.REQUEST_RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            periodicExecutor.shutdown();
+            ShutdownHandler.execute();
+        }));
     }
 }

@@ -1,11 +1,11 @@
 package com.feup.sdis.model;
 
+import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Store {
     private static Store storeInstance;
@@ -15,6 +15,7 @@ public class Store {
     final private SerializableHashMap<StoredChunkInfo> storedFiles = new SerializableHashMap<>(
             Constants.peerRootFolder + "stored.ser");
     final private Set<String> chunksSent = Collections.synchronizedSet(new HashSet<>());
+    final private Queue<RequestInfo> retryQueue = new ConcurrentLinkedQueue<>();
     private int usedSpace = 0;
 
     private Store() {
@@ -86,6 +87,25 @@ public class Store {
         }
         
         return this.storedFiles.remove(chunkToPop);
+    }
+
+    public synchronized void retryRequest() {
+        if (retryQueue.isEmpty()) return;
+
+        RequestInfo nextRequest = retryQueue.poll();
+        System.out.println("> RETRY: Retrying request " + nextRequest.getRequest() + " to peer " + nextRequest.getAddress());
+        final Response response = MessageListener.sendMessage(nextRequest.getRequest(), nextRequest.getAddress());
+        nextRequest.decrementRetries();
+
+        // request was not received
+        if (response == null) {
+            if (nextRequest.reachedMaxRetries()) {
+                System.out.println("> RETRY: Reached max tries for request " + nextRequest.getRequest() + " to peer " + nextRequest.getAddress());
+            }
+            else {
+                retryQueue.add(nextRequest);
+            }
+        }
     }
 
 }
