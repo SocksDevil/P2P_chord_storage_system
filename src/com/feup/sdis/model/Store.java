@@ -23,6 +23,7 @@ public class Store {
     public synchronized static Store instance() {
         if (storeInstance == null) {
             storeInstance = new Store();
+            storeInstance.calculateUsedDiskSpace();
         }
         return storeInstance;
     }
@@ -39,13 +40,16 @@ public class Store {
         return storedFiles;
     }
 
-
     public synchronized int getUsedDiskSpace() {
+        return this.usedSpace;
+    }
+
+    public synchronized void calculateUsedDiskSpace() {
         int total = 0;
         for (Map.Entry<String, StoredChunkInfo> entry : storedFiles.entrySet()) {
             total += entry.getValue().chunkSize;
         }
-        return total;
+        this.usedSpace = total;
     }
 
     public Set<String> getChunksSent() {

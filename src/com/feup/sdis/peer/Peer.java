@@ -50,9 +50,6 @@ public class Peer {
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";
         Server.createPeerFolders();
 
-        // TODO: SERVER PORT IS HARDCODED
-        Constants.SERVER_PORT = 25565;
-
         // TODO: com argumentos
         try {
             addressInfo = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port, peerID);
