@@ -20,7 +20,7 @@ public class ShutdownHandler extends Thread {
 
     @Override
     public void run() {
-        System.out.println("> SHUTDOWN: Terminating sequence intiated.");
+        System.out.println("> SHUTDOWN: Terminating sequence initiated.");
 
         // Shutdown chord (stop periodic threads)
         Chord.chordInstance.shutdown();
@@ -33,7 +33,7 @@ public class ShutdownHandler extends Thread {
         // Send stored chunks to successor (chunk backup protocol with overrided destination)
         SerializableHashMap<StoredChunkInfo> chunks = Store.instance().getStoredFiles();
         int chunkCount = chunks.size();
-        System.out.println("> SHUTDOWN: Retreived chunks from storage(" + chunks.size() + " chunks)");
+        System.out.println("> SHUTDOWN: Retrieved chunks from storage(" + chunks.size() + " chunks)");
         System.out.println("> SHUTDOWN: Sending chunks to successor...");
 
         List<Future<String>> backupCalls = new ArrayList<>();
