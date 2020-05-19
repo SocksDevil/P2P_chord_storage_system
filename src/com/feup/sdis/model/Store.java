@@ -108,4 +108,8 @@ public class Store {
         }
     }
 
+    public synchronized void addRequestToRetryQueue(RequestInfo reqInfo) {
+        this.retryQueue.add(reqInfo);
+    }
+
 }

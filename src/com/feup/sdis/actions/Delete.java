@@ -8,6 +8,8 @@ import com.feup.sdis.messages.requests.DeleteRequest;
 import com.feup.sdis.messages.responses.ChunkInfoResponse;
 import com.feup.sdis.messages.responses.DeleteFileInfoResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
+import com.feup.sdis.model.RequestInfo;
+import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
@@ -36,10 +38,9 @@ public class Delete extends Action {
         final DeleteFileInfo deleteFileInfoReq = new DeleteFileInfo(fileID);
         final DeleteFileInfoResponse deleteFileInfoRes = MessageListener.sendMessage(deleteFileInfoReq, backupInitiatorPeer);
 
-        if (deleteFileInfoRes == null || deleteFileInfoRes.getStatus() != Status.SUCCESS) {
-            final String error = "Error removing file " + fileID + " info from peer " + backupInitiatorPeer;
-            System.out.println(error);
-            return error;
+        if (deleteFileInfoRes == null) {
+            Store.instance().addRequestToRetryQueue(new RequestInfo(deleteFileInfoReq, backupInitiatorPeer));
+            System.out.println("Error removing file " + fileID + " from initiator peer " + backupInitiatorPeer + ", added to retry queue");
         }
 
         for (int chunkNo = 0; chunkNo < nChunks; chunkNo++) {
@@ -61,7 +62,8 @@ public class Delete extends Action {
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
             if (deleteResponse == null) {
-                System.out.println("Could not read DELETE response for chunk " + chunkNumber);
+                Store.instance().addRequestToRetryQueue(new RequestInfo(deleteRequest, addressInfo));
+                System.out.println("Could not read DELETE response for chunk " + chunkNumber + ", added to retry queue");
                 return;
             }
 

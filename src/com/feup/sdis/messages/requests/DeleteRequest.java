@@ -4,6 +4,7 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.model.RequestInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
@@ -45,6 +46,7 @@ public class DeleteRequest extends Request {
 
             if (deleteResponse == null || deleteRequest.getConnection() == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
+                Store.instance().addRequestToRetryQueue(new RequestInfo(deleteRequest, chunkOwner));
                 return new DeleteResponse(Status.ERROR, fileID, chunkNo, replNo);
             }
 
