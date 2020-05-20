@@ -4,7 +4,6 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.DeleteResponse;
 import com.feup.sdis.messages.responses.Response;
-import com.feup.sdis.model.RequestInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
@@ -31,7 +30,6 @@ public class DeleteRequest extends Request {
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
         final SocketAddress chunkOwner = store.getReplCount().getPeerAddress(chunkID, replNo);
-        store.getReplCount().removeRepDegree(chunkID, replNo);
 
         if (chunkOwner == null) {
             System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
@@ -44,10 +42,9 @@ public class DeleteRequest extends Request {
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, chunkOwner);
 
-            if (deleteResponse == null || deleteRequest.getConnection() == null) {
+            if (deleteResponse == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
-                Store.instance().addRequestToRetryQueue(new RequestInfo(deleteRequest, chunkOwner));
-                return new DeleteResponse(Status.ERROR, fileID, chunkNo, replNo);
+                return new DeleteResponse(Status.CONNECTION_ERROR, fileID, chunkNo, replNo);
             }
 
             Status responseStatus = deleteResponse.getStatus();
@@ -57,11 +54,13 @@ public class DeleteRequest extends Request {
             }
 
             System.out.println("> DELETE: Deleted chunk " + chunkID + ", replNo=" + replNo);
+            store.getReplCount().removeRepDegree(chunkID, replNo);
             return new DeleteResponse(Status.SUCCESS, fileID, chunkNo, replNo);
         }
 
         // this peer has the chunk
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
+        store.getReplCount().removeRepDegree(chunkID, replNo);
         store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
         store.getStoredFiles().remove(chunkID);
         store.getBackedUpFiles().remove(fileID);
