@@ -29,15 +29,16 @@ public class ChunkLookupRequest extends Request {
         final Store store = Store.instance();
 
         SocketAddress peerWithChunk = Peer.addressInfo;
+        PeerInfo peerInfo = store.getReplCount().getPeerAddress(chunkID, replNo);
         if (!store.getStoredFiles().containsKey(chunkID) ||
-                store.getReplCount().getPeerAddress(chunkID, replNo).getAddress() != Peer.addressInfo) { // TODO may contain placeholder, handle this somewhere
-            final PeerInfo redirectAddressInfo = store.getReplCount().getPeerAddress(chunkID, replNo);
-            if (redirectAddressInfo == null) {
+                (peerInfo == null ||  !peerInfo.getAddress().equals(Peer.addressInfo) )) { // TODO may contain placeholder, handle this somewhere
+            
+            if (peerInfo == null) {
                 System.out.println("> CHUNK LOOKUP: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
                 return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);
             }
 
-            final SocketAddress redirectAddress = redirectAddressInfo.getAddress();
+            final SocketAddress redirectAddress = peerInfo.getAddress();
 
             System.out.println("> CHUNK LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
 
