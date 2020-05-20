@@ -27,6 +27,7 @@ public class ShutdownHandler extends Thread {
         System.out.println("> SHUTDOWN: Stopped chord periodic threads.");
 
         // Shutdown message receiving
+        MessageListener.shutdown();
         Peer.messageReceiver.interrupt();
         System.out.println("> SHUTDOWN: Stopped message listener.");
 
@@ -62,7 +63,6 @@ public class ShutdownHandler extends Thread {
 
         int i = 0;
         int unsucessfulDeletions = 0;
-
         // For each successful transfer, delete stored chunk
         for (Map.Entry<String, StoredChunkInfo> chunkEntry : chunks.entrySet()) {
 
@@ -73,9 +73,7 @@ public class ShutdownHandler extends Thread {
             else{
                 System.out.println("> SHUTDOWN: Successfully transfered chunk " + chunkEntry.getKey());
             }
-
-            i++;
-            
+            i++;   
         }
 
         System.out.println("> SHUTDOWN: Transfer complete, " + unsucessfulDeletions + " chunks could not be transfered.");
