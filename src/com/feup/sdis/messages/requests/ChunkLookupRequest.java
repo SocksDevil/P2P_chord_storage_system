@@ -30,13 +30,14 @@ public class ChunkLookupRequest extends Request {
 
         SocketAddress peerWithChunk = Peer.addressInfo;
         PeerInfo peerInfo = store.getReplCount().getPeerAddress(chunkID, replNo);
+
+        if (peerInfo == null) {
+            System.out.println("> CHUNK LOOKUP: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
+            return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);
+        }
         if (!store.getStoredFiles().containsKey(chunkID) ||
-                (peerInfo == null ||  !peerInfo.getAddress().equals(Peer.addressInfo) )) { // TODO may contain placeholder, handle this somewhere
+                !peerInfo.getAddress().equals(Peer.addressInfo) ) { // TODO may contain placeholder, handle this somewhere
             
-            if (peerInfo == null) {
-                System.out.println("> CHUNK LOOKUP: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
-                return new ChunkLookupResponse(Status.FILE_NOT_FOUND, Peer.addressInfo);
-            }
 
             final SocketAddress redirectAddress = peerInfo.getAddress();
 

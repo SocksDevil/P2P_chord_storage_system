@@ -51,7 +51,7 @@
             "name": "BACKUP CC r=2",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 1"
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
         },
         {
             "type": "java",
@@ -109,7 +109,7 @@
             "name": "RECLAIM 1",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 fellow_ooffer RECLAIM 2"
+            "args": "127.0.0.1 motaengil RECLAIM 3"
         },
         {
             "type": "java",

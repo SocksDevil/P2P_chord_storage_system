@@ -31,7 +31,6 @@ public class DeleteRequest extends Request {
         System.out.println("> DELETE: peer " + Peer.addressInfo + " received request (" + fileID + "," + chunkNo + "," + replNo + ")");
 
         final PeerInfo chunkOwnerInfo = store.getReplCount().getPeerAddress(chunkID, replNo);
-        store.getReplCount().removeRepDegree(chunkID, replNo);
 
         if (chunkOwnerInfo == null) {
             System.out.println("> DELETE: redirect address is null for chunk " + chunkNo + " of file " + fileID + ", replNo = " + replNo);
@@ -48,7 +47,7 @@ public class DeleteRequest extends Request {
 
             if (deleteResponse == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
-                return new DeleteResponse(Status.ERROR, fileID, chunkNo, replNo);
+                return new DeleteResponse(Status.CONNECTION_ERROR, fileID, chunkNo, replNo);
             }
 
             Status responseStatus = deleteResponse.getStatus();
@@ -58,13 +57,15 @@ public class DeleteRequest extends Request {
             }
 
             System.out.println("> DELETE: Deleted chunk " + chunkID + ", replNo=" + replNo);
+            store.getReplCount().removeRepDegree(chunkID, replNo);
             return new DeleteResponse(Status.SUCCESS, fileID, chunkNo, replNo);
         }
 
         // this peer has the chunk
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
+        store.getReplCount().removeRepDegree(chunkID, replNo);
         if(!storedChunkInfo.pendingDeletion())
-            store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
+            store.decrementSpace(storedChunkInfo.getChunkSize());
 
         return null;
     }
