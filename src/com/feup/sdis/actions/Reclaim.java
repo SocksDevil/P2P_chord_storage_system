@@ -3,6 +3,7 @@ package com.feup.sdis.actions;
 import java.io.File;
 import java.io.IOException;
 
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Peer;
@@ -24,7 +25,7 @@ public class Reclaim extends Action {
         while (Store.instance().getUsedDiskSpace() > Constants.MAX_OCCUPIED_DISK_SPACE_MB) {
             StoredChunkInfo chunkInfo = Store.instance().popChunkFromStored();
             String chunkID = chunkInfo.getChunkID();
-            Integer currRepDegree = Store.instance().getReplCount().removePeerID(chunkID, Peer.addressInfo);
+            Integer currRepDegree = Store.instance().getReplCount().removePeerID(chunkID, new PeerInfo(Peer.addressInfo, chunkInfo.getChunkSize()));
 
             Store.instance().incrementSpace(-1 * chunkInfo.getChunkSize());
 
