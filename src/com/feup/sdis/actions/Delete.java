@@ -8,9 +8,15 @@ import com.feup.sdis.messages.requests.DeleteRequest;
 import com.feup.sdis.messages.responses.ChunkInfoResponse;
 import com.feup.sdis.messages.responses.DeleteFileInfoResponse;
 import com.feup.sdis.messages.responses.DeleteResponse;
+import com.feup.sdis.model.RequestRetryInfo;
+import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.MessageListener;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Delete extends Action {
     private final String fileID;
@@ -30,17 +36,21 @@ public class Delete extends Action {
 
         final int desiredRepl = response.getReplDegree();
         final int nChunks = response.getnChunks();
-        final SocketAddress backupInitiatorPeer = response.getInitiatorPeer();
 
         // remove BackupFileInfo from the peer that initiated the backup
-        final DeleteFileInfo deleteFileInfoReq = new DeleteFileInfo(fileID);
-        final DeleteFileInfoResponse deleteFileInfoRes = MessageListener.sendMessage(deleteFileInfoReq, backupInitiatorPeer);
+        Callable<Boolean> deleteFileInfoReq = () -> {
+            final SocketAddress backupInitiatorPeer = response.getInitiatorPeer();
+            final DeleteFileInfo req = new DeleteFileInfo(fileID);
+            final DeleteFileInfoResponse res = MessageListener.sendMessage(req, backupInitiatorPeer);
 
-        if (deleteFileInfoRes == null || deleteFileInfoRes.getStatus() != Status.SUCCESS) {
-            final String error = "Error removing file " + fileID + " info from peer " + backupInitiatorPeer;
-            System.out.println(error);
-            return error;
-        }
+            if (res == null) {
+                System.out.println("Error removing file " + fileID + " from initiator peer " + backupInitiatorPeer);
+                return false;
+            }
+
+            return true;
+        };
+        sendRequest(deleteFileInfoReq);
 
         for (int chunkNo = 0; chunkNo < nChunks; chunkNo++) {
             for (int replDegree = 0; replDegree < desiredRepl; replDegree++) {
@@ -52,7 +62,8 @@ public class Delete extends Action {
     }
 
     public static void deleteChunk(int chunkNumber, int replNo, String fileID) {
-        BSDispatcher.servicePool.execute(() -> {
+
+        Callable<Boolean> r = () -> {
             final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
 
             final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
@@ -61,20 +72,45 @@ public class Delete extends Action {
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
             if (deleteResponse == null) {
-                System.out.println("Could not read DELETE response for chunk " + chunkNumber);
-                return;
+                System.out.println("Could not read DELETE response for chunk " + chunkNumber + ", added to retry queue");
+                return false;
+            }
+
+            if (deleteResponse.getStatus() == Status.SUCCESS) {
+                System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
+                return true;
             }
 
             switch (deleteResponse.getStatus()) {
-                case SUCCESS:
-                    System.out.println("Deleted chunk " + chunkNumber + " from " + addressInfo.toString() + ", replNo=" + replNo);
-                    break;
                 case FILE_NOT_FOUND:
                     System.out.println("Chunk " + chunkNumber + " was not present in " + addressInfo.toString());
+                    break;
+                case CONNECTION_ERROR:
+                    System.out.println("Connection error for chunk " + chunkID + ", replNo=" + replNo);
                     break;
                 default:
                     System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
                             ", got error " + deleteResponse.getStatus());
+            }
+
+            System.out.println("Adding request " + deleteRequest.toString() + " to retry queue");
+            return false;
+        };
+
+        sendRequest(r);
+    }
+
+    private static void sendRequest(Callable<Boolean> r) {
+        Future<Boolean> receivedAnswer = BSDispatcher.servicePool.submit(r);
+        BSDispatcher.servicePool.execute(() -> {
+            try {
+                Boolean answer = receivedAnswer.get();
+                if (!answer) {
+                    System.out.println("> DELETE: adding request to retry queue");
+                    Store.instance().addRequestToRetryQueue(new RequestRetryInfo(r));
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
         });
     }

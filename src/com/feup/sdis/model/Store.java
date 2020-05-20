@@ -1,11 +1,14 @@
 package com.feup.sdis.model;
 
+import com.feup.sdis.actions.BSDispatcher;
+import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.peer.Constants;
+import com.feup.sdis.peer.MessageListener;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class Store {
     private static Store storeInstance;
@@ -15,6 +18,7 @@ public class Store {
     final private SerializableHashMap<StoredChunkInfo> storedFiles = new SerializableHashMap<>(
             Constants.peerRootFolder + "stored.ser");
     final private Set<String> chunksSent = Collections.synchronizedSet(new HashSet<>());
+    final private Queue<RequestRetryInfo> retryQueue = new ConcurrentLinkedQueue<>();
     private int usedSpace = 0;
 
     private Store() {
@@ -86,6 +90,36 @@ public class Store {
         }
         
         return this.storedFiles.remove(chunkToPop);
+    }
+
+    public synchronized void retryRequest() {
+        if (retryQueue.isEmpty()) return;
+
+        RequestRetryInfo nextRequest = retryQueue.poll();
+        System.out.println("> RETRY: Retrying request ");
+        nextRequest.decrementRetries();
+        Future<Boolean> receivedAnswer = BSDispatcher.servicePool.submit(nextRequest.getRequest());
+
+        BSDispatcher.servicePool.execute(() -> {
+            try {
+                Boolean answer = receivedAnswer.get();
+                if (!answer) {
+                    if (nextRequest.reachedMaxRetries()) {
+                        System.out.println("> RETRY: Reached max tries for request ");
+                    }
+                    else {
+                        retryQueue.add(nextRequest);
+                    }
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+
+    public synchronized void addRequestToRetryQueue(RequestRetryInfo reqInfo) {
+        this.retryQueue.add(reqInfo);
     }
 
 }

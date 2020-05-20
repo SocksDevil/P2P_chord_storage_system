@@ -16,10 +16,9 @@ import com.feup.sdis.model.SerializableHashMap;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 
-public class ShutdownHandler extends Thread {
+public class ShutdownHandler {
 
-    @Override
-    public void run() {
+    public static void execute() {
         System.out.println("> SHUTDOWN: Terminating sequence initiated.");
 
         // Shutdown chord (stop periodic threads)
@@ -62,12 +61,13 @@ public class ShutdownHandler extends Thread {
         }).collect(Collectors.toList());
 
         int i = 0;
-        int unsucessfulDeletions = 0;
+        int unsuccessfulDeletions = 0;
+
         // For each successful transfer, delete stored chunk
         for (Map.Entry<String, StoredChunkInfo> chunkEntry : chunks.entrySet()) {
 
             if (backupReturnCodes.get(i) !=  null){
-                unsucessfulDeletions++;
+                unsuccessfulDeletions++;
                 System.out.println("> SHUTDOWN: Failed to transfer chunk " + chunkEntry.getKey());
             }
             else{
@@ -76,15 +76,15 @@ public class ShutdownHandler extends Thread {
             i++;   
         }
 
-        System.out.println("> SHUTDOWN: Transfer complete, " + unsucessfulDeletions + " chunks could not be transfered.");
+        System.out.println("> SHUTDOWN: Transfer complete, " + unsuccessfulDeletions + " chunks could not be transfered.");
 
         final File peerFolder = new File(Constants.peerRootFolder);
-        this.deleteDirectory(peerFolder);
+        deleteDirectory(peerFolder);
         System.out.println("> SHUTDOWN: Deleted file system storage");
 
     }
 
-    private void deleteDirectory(File directoryToBeDeleted) {
+    private static void deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
