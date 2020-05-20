@@ -2,7 +2,6 @@ package com.feup.sdis.messages.responses;
 
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
-import com.feup.sdis.model.BackupFileInfo;
 import com.feup.sdis.model.StoredChunkInfo;
 
 

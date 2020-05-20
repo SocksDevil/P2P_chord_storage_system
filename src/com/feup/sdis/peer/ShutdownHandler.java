@@ -26,6 +26,7 @@ public class ShutdownHandler {
         System.out.println("> SHUTDOWN: Stopped chord periodic threads.");
 
         // Shutdown message receiving
+        MessageListener.shutdown();
         Peer.messageReceiver.interrupt();
         System.out.println("> SHUTDOWN: Stopped message listener.");
 
@@ -72,9 +73,7 @@ public class ShutdownHandler {
             else{
                 System.out.println("> SHUTDOWN: Successfully transfered chunk " + chunkEntry.getKey());
             }
-
-            i++;
-            
+            i++;   
         }
 
         System.out.println("> SHUTDOWN: Transfer complete, " + unsuccessfulDeletions + " chunks could not be transfered.");
