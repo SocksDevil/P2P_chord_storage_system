@@ -18,6 +18,8 @@ public class MessageListener {
 
     private static final boolean DEBUG_MODE = false;
     private static final ExecutorService pool = Executors.newCachedThreadPool();
+    private static AsynchronousServerSocketChannel serverSocket;
+    private static AsynchronousChannelGroup group;
     private static int port;
 
     public MessageListener(int port) {
@@ -25,11 +27,21 @@ public class MessageListener {
         MessageListener.port = port;
     }
 
+    public static void shutdown(){
+        group.shutdown();
+        pool.shutdown();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            System.out.println("An unexpected error while closing the server socket.");
+        }
+    }
+
     public void receive() {
 
-        final AsynchronousServerSocketChannel serverSocket;
         try {
-            serverSocket = AsynchronousServerSocketChannel.open(AsynchronousChannelGroup.withCachedThreadPool(pool, 1));
+            group = AsynchronousChannelGroup.withCachedThreadPool(pool, 1);
+            serverSocket = AsynchronousServerSocketChannel.open();
             serverSocket.bind(new InetSocketAddress(port));
         } catch (IOException e) {
             System.out.println("Failed to initialize server on port " + port);
