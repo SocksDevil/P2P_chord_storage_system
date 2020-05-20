@@ -2,11 +2,12 @@ package com.feup.sdis.model;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.feup.sdis.chord.SocketAddress;
 
-public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAddress>>{
+public class ReplicationCounter extends SerializableHashMap<Map<Integer,PeerInfo>>{
 
     ReplicationCounter(String filename) {
         super(filename);
@@ -20,18 +21,18 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         this.remove(key);
     }
 
-    public synchronized void addNewID(String key, SocketAddress peer, Integer repDegree){
-        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
+    public synchronized void addNewID(String key, PeerInfo peer, Integer repDegree){
+        Map<Integer,PeerInfo> peers = this.getOrDefault(key, new HashMap<>());
         peers.put(repDegree, peer);
         this.files.put(key, peers);
         this.updateObject();
     }
 
-    public synchronized Integer removePeerID(String key, SocketAddress peerId){
-        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
+    public synchronized Integer removePeerID(String key, PeerInfo peerId){
+        Map<Integer,PeerInfo> peers = this.getOrDefault(key, new HashMap<>());
         Integer repDegree = null;
         
-        for (Map.Entry<Integer, SocketAddress> entry : peers.entrySet())
+        for (Map.Entry<Integer, PeerInfo> entry : peers.entrySet())
             if (peerId.equals(entry.getValue())) {
                 repDegree = entry.getKey();
                 break;
@@ -46,9 +47,9 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         return repDegree;
     }
 
-    public synchronized SocketAddress removeRepDegree(String key, Integer repDegree){
-        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
-        SocketAddress addr = peers.remove(repDegree);
+    public synchronized PeerInfo removeRepDegree(String key, Integer repDegree){
+        Map<Integer,PeerInfo> peers = this.getOrDefault(key, new HashMap<>());
+        PeerInfo addr = peers.remove(repDegree);
         if(peers.isEmpty()){
             this.removeChunkInfo(key);
             this.updateObject();
@@ -65,7 +66,7 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         return this.files.containsKey(key);
     }
 
-    public synchronized boolean containsPeer(String key, SocketAddress peerId){
+    public synchronized boolean containsPeer(String key, PeerInfo peerId){
 
         System.out.println("Key: " + key + "SocketAddr: " + peerId);
         System.out.println(this.getOrDefault(key, new HashMap<>()).containsValue(peerId));
@@ -77,20 +78,20 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,SocketAd
         return this.getOrDefault(key, new HashMap<>()).containsKey(repDegree);
     }
 
-    public synchronized SocketAddress getPeerAddress(String key, Integer repDegree){
+    public synchronized PeerInfo getPeerAddress(String key, Integer repDegree){
         return this.getOrDefault(key, new HashMap<>()).get(repDegree);
     }
 
     public synchronized Integer getRepDegree(String key, SocketAddress peerId){
-        Map<Integer,SocketAddress> peers = this.getOrDefault(key, new HashMap<>());
-        for (Map.Entry<Integer, SocketAddress> entry : peers.entrySet())
-            if (peerId.equals(entry.getValue()))
+        Map<Integer,PeerInfo> peers = this.getOrDefault(key, new HashMap<>());
+        for (Map.Entry<Integer, PeerInfo> entry : peers.entrySet())
+            if (peerId.equals(entry.getValue().getAddress()))
                 return entry.getKey();
         return null;
     }
 
     @Override
-    public synchronized Map<Integer, SocketAddress> getOrDefault(String s, Map<Integer, SocketAddress> map) {
+    public synchronized Map<Integer, PeerInfo> getOrDefault(String s, Map<Integer, PeerInfo> map) {
         return super.getOrDefault(s, Collections.synchronizedMap(map));
     }
 }

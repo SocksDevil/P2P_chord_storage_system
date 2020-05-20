@@ -12,11 +12,13 @@ import java.rmi.registry.Registry;
 import java.rmi.server.ExportException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
+import java.lang.Runtime;
 
 public class Peer {
 
     // TODO: ver isto meu puto
     public static SocketAddress addressInfo;
+    public static Thread messageReceiver;
 
     /**
      * Peer hostAddress peerID accessPoint [chordEntryAddress]
@@ -50,9 +52,6 @@ public class Peer {
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";
         Server.createPeerFolders();
 
-        // TODO: SERVER PORT IS HARDCODED
-        Constants.SERVER_PORT = 25565;
-
         // TODO: com argumentos
         try {
             addressInfo = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port, peerID);
@@ -83,7 +82,7 @@ public class Peer {
 
         // TODO: move this to a proper place:
 
-        Thread t1 = new Thread(new Runnable() {
+        messageReceiver = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -94,7 +93,7 @@ public class Peer {
             }
         });
 
-        t1.start();
+        messageReceiver.start();
 
         if (args.length == 5) {
 
@@ -131,6 +130,6 @@ public class Peer {
 
         Chord.chordInstance.initThreads();
 
-
+        Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
     }
 }

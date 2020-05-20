@@ -44,6 +44,7 @@ public class SerializationUtils {
             out.flush();
         } catch (IOException e) {
             System.out.println("Failed to serialize object!");
+            e.printStackTrace();
             return null;
         }
 

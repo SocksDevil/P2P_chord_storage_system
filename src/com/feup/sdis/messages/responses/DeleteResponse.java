@@ -19,6 +19,14 @@ public class DeleteResponse extends Response {
         return fileID;
     }
 
+    public int getChunkNo() {
+        return chunkNo;
+    }
+
+    public int getReplNo() {
+        return replNo;
+    }
+
     @Override
     public String toString() {
         return "DeleteResponse{" +

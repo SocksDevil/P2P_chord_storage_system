@@ -123,7 +123,14 @@
             "name": "DELETE",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 metadias DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
+            "args": "127.0.0.1 eduvidas DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
+        },
+        {
+            "type": "java",
+            "name": "SHUTDOWN",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 fellow_ooffer SHUTDOWN"
         }
     ]
 }

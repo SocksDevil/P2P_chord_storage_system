@@ -5,6 +5,7 @@ import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
 import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.messages.responses.Response;
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.MessageListener;
@@ -68,38 +69,42 @@ public class BackupLookupRequest extends Request {
             if(!this.redirected){
                 Store.instance().getReplCount().addNewID(chunkID, null, this.currReplication);
             }
-            
-            // Get successor
-            final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSuccessor(), this.chunkLength, true);
-            final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 
-            // This should never happen
-            if(lookupRequestAnswer == null ){
-                System.err.println("Received null in lookup response: backing " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
-                return new BackupLookupResponse(Status.ERROR, Peer.addressInfo);
-            }
-
-            // System has no available space
-            if (lookupRequestAnswer.getStatus() != Status.SUCCESS) {
-                System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
-                return lookupRequestAnswer;
-            }
-
-            System.out.println("> BACKUP LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
-            
-            // Responsible peer save redirect
-            if(!this.redirected ){
-                Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
-            }
-            Store.instance().getReplCount().addNewID(chunkID, lookupRequestAnswer.getAddress(), this.currReplication);
-
-            // Successfully found
-            return lookupRequestAnswer;
+            return backupChunkInSuccessor(chunkID, fileID, chunkNo, currReplication, chunkLength, redirected);
         }
 
         System.out.println("> BACKUP LOOKUP: Success - " + Peer.addressInfo + " - " + chunkID );
-        Store.instance().getReplCount().addNewID(chunkID, Peer.addressInfo, this.currReplication);
+        Store.instance().getReplCount().addNewID(chunkID, new PeerInfo(Peer.addressInfo, chunkLength), this.currReplication);
         return new BackupLookupResponse(Status.SUCCESS, Peer.addressInfo);
+    }
+
+    public static BackupLookupResponse backupChunkInSuccessor(String chunkID, String fileID, int chunkNo, int currReplication, int chunkLength, boolean redirected) {
+        // Get successor
+        final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSuccessor(), chunkLength, true);
+        final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+
+        // This should never happen
+        if(lookupRequestAnswer == null ){
+            System.err.println("Received null in lookup response: backing " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
+            return new BackupLookupResponse(Status.ERROR, Peer.addressInfo);
+        }
+
+        // System has no available space
+        if (lookupRequestAnswer.getStatus() != Status.SUCCESS) {
+            System.out.println("> BACKUP LOOKUP: No space available for " + chunkNo + " of file " + fileID);
+            return lookupRequestAnswer;
+        }
+
+        System.out.println("> BACKUP LOOKUP: Returning " + lookupRequestAnswer.getAddress() + " for " + chunkID + " rep " + currReplication);
+
+        // Responsible peer save redirect
+        if(!redirected ){
+            Store.instance().getReplCount().removeRepDegree(chunkID, currReplication);
+        }
+        Store.instance().getReplCount().addNewID(chunkID, new PeerInfo(lookupRequestAnswer.getAddress(), chunkLength), currReplication);
+
+        // Successfully found
+        return lookupRequestAnswer;
     }
 
     @Override

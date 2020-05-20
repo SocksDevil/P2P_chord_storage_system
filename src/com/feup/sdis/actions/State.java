@@ -2,22 +2,18 @@ package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
-import com.feup.sdis.model.BackupFileInfo;
-import com.feup.sdis.model.ReplicationCounter;
-import com.feup.sdis.model.SerializableHashMap;
-import com.feup.sdis.model.Store;
-import com.feup.sdis.model.StoredChunkInfo;
+import com.feup.sdis.model.*;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;
 
 import java.util.Map;
-import java.util.Set;
 
 public class State extends Action {
     @Override
     public String process() {
         final SerializableHashMap<BackupFileInfo> backedFiles = Store.instance().getBackedUpFiles();
         String message = "Peer " + Constants.SENDER_ID + "\n";
+        message += "Used disk space: " + Store.instance().getUsedDiskSpace() + " bytes\n";
         message += "Backed up files: " + (backedFiles.size() == 0 ? "NONE" : backedFiles.size()) + "\n";
         for (Map.Entry<String, BackupFileInfo> entry : backedFiles.entrySet()) {
             final BackupFileInfo file = entry.getValue();
@@ -48,12 +44,12 @@ public class State extends Action {
 
         final ReplicationCounter reCounter = Store.instance().getReplCount();
         message += "Redirects chunks: " + (reCounter.size() == 0 ? "NONE" : reCounter.size()) + "\n";
-        for (Map.Entry<String, Map<Integer, SocketAddress>> entry : reCounter.entrySet()) {
+        for (Map.Entry<String, Map<Integer, PeerInfo>> entry : reCounter.entrySet()) {
             message += "  - " + entry.getKey() + "\n";
-            for(Map.Entry<Integer, SocketAddress> entry2 : entry.getValue().entrySet()){
+            for(Map.Entry<Integer, PeerInfo> entry2 : entry.getValue().entrySet()){
                 message += "       > rep No: " + entry2.getKey() + "\n";
-                message += "       > redirect: " + (entry2.getValue().equals(Peer.addressInfo) ? "no" : "yes")  + "\n";
-                message += "       > socket address: " + entry2.getValue() + "\n";
+                message += "       > redirect: " + (entry2.getValue().getAddress().equals(Peer.addressInfo) ? "no" : "yes")  + "\n";
+                message += "       > socket address: " + entry2.getValue().getAddress() + "\n";
             }
         }
 

@@ -5,6 +5,7 @@ import com.feup.sdis.exceptions.MessageError;
 
 import java.io.IOException;
 import java.rmi.NotBoundException;
+import java.rmi.UnmarshalException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
@@ -48,7 +49,11 @@ public class TestApp {
         try {
             System.out.println("@ Sending message to peer " + peerAp + ": " + msg);
             answer = stub.processMsg(msg);
-        } catch (MessageError messageError) {
+        } 
+        catch (UnmarshalException ex){
+            answer = "Peer was terminated.";
+        }
+        catch (MessageError messageError) {
             messageError.printStackTrace();
         }
         System.out.println("@ Received answer:");

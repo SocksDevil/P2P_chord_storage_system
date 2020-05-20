@@ -31,7 +31,7 @@ public class GetChunkRequest extends Request {
         try {
             return new ChunkResponse(storedChunkInfo.getBody(), fileID, chunkNo,
                     storedChunkInfo.getDesiredReplicationDegree(), storedChunkInfo.getnChunks(),
-                    storedChunkInfo.getOriginalFilename());
+                    storedChunkInfo.getOriginalFilename(), storedChunkInfo.getInitiatorPeer());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Peer;
