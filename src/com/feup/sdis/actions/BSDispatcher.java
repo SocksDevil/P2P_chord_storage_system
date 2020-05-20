@@ -33,6 +33,8 @@ public class BSDispatcher implements Dispatcher {
             case "STATE":
                 action = new State();
                 break;
+            case "SHUTDOWN":
+                System.exit(0);
             default:
                 throw new MessageError("Received unknown RMI message");
         }
