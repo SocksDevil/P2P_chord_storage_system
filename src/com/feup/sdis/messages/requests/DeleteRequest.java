@@ -64,7 +64,8 @@ public class DeleteRequest extends Request {
         // this peer has the chunk
         final StoredChunkInfo storedChunkInfo = store.getStoredFiles().get(chunkID);
         store.getReplCount().removeRepDegree(chunkID, replNo);
-        store.incrementSpace(-1 * storedChunkInfo.getChunkSize());
+        if(!storedChunkInfo.pendingDeletion())
+            store.decrementSpace(storedChunkInfo.getChunkSize());
 
         return null;
     }
@@ -72,11 +73,10 @@ public class DeleteRequest extends Request {
     @Override
     public Response handle() {
         final Response errorResponse = this.deleteChunk();
-        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        Store.instance().getStoredFiles().remove(chunkID);
-        Store.instance().getBackedUpFiles().remove(fileID);
         if (errorResponse != null)
             return errorResponse;
+        final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
+        Store.instance().getStoredFiles().remove(chunkID);
         Status returnStatus = Status.SUCCESS;
 
         final File fileToDelete = new File(Constants.backupFolder + chunkID);

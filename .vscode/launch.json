@@ -51,7 +51,7 @@
             "name": "BACKUP CC r=2",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 1"
+            "args": "127.0.0.1 mcgun BACKUP clean_code.pdf 2"
         },
         {
             "type": "java",
@@ -106,17 +106,24 @@
         },
         {
             "type": "java",
-            "name": "RECLAIM",
+            "name": "RECLAIM 1",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 fellow_ooffer RECLAIM 2"
+            "args": "127.0.0.1 motaengil RECLAIM 3"
+        },
+        {
+            "type": "java",
+            "name": "RECLAIM 2",
+            "request": "launch",
+            "mainClass": "com.feup.sdis.TestApp",
+            "args": "127.0.0.1 metadias RECLAIM 0"
         },
         {
             "type": "java",
             "name": "DELETE",
             "request": "launch",
             "mainClass": "com.feup.sdis.TestApp",
-            "args": "127.0.0.1 metadias DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
+            "args": "127.0.0.1 eduvidas DELETE da39c4fd-3a24-3ac4-b312-5e5a2d2bb65c"
         },
         {
             "type": "java",

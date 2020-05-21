@@ -1,9 +1,7 @@
 package com.feup.sdis.model;
 
 import com.feup.sdis.actions.BSDispatcher;
-import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.MessageListener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -70,14 +68,26 @@ public class Store {
         return false;
     }
 
-    public synchronized StoredChunkInfo popChunkFromStored(){
+    public synchronized boolean decrementSpace(int length) {
+        if(this.usedSpace - length >= 0){
+            this.usedSpace -= length;
+            return true;
+        }
+        System.err.println("> Store: ERROR in space. Decrementing to negative number");
+        return false;
+    }
+
+    // Returns null if empty
+    public synchronized StoredChunkInfo getChunkCandidate(){
         if(this.storedFiles.size() == 0)
             return null;
-
         int maxFound = -1;
         String chunkToPop = null;
-        for (Map.Entry<String,StoredChunkInfo> entry : this.storedFiles.entrySet()) {
+        for (Map.Entry<String, StoredChunkInfo> entry : this.storedFiles.entrySet())
+        {
             int chunkSize = entry.getValue().chunkSize;
+            if(entry.getValue().pendingDeletion())
+                continue;
             if (chunkSize == Constants.BLOCK_SIZE) { // there wont be bigger chunks
                 chunkToPop = entry.getKey();
                 break;
@@ -88,8 +98,10 @@ public class Store {
                 chunkToPop = entry.getKey();
             }
         }
-        
-        return this.storedFiles.remove(chunkToPop);
+
+        StoredChunkInfo storedChunkInfo = this.storedFiles.get(chunkToPop);
+        storedChunkInfo.setPendingDeletion(true);
+        return storedChunkInfo;
     }
 
     public synchronized void retryRequest() {

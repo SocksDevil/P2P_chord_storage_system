@@ -14,6 +14,7 @@ public class StoredChunkInfo implements Serializable {
     private int nChunks;
     private String originalFilename;
     private SocketAddress initiatorPeer;
+    private boolean pendingDeletion;
 
     public StoredChunkInfo(String fileID, int desiredReplicationDegree,
                            int chunkNo, int chunkSize, int nChunks,
@@ -25,6 +26,7 @@ public class StoredChunkInfo implements Serializable {
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
         this.initiatorPeer = initiatorPeer;
+        this.pendingDeletion = false;
     }
 
     public StoredChunkInfo(String fileID, int chunkNo, int chunkSize) {
@@ -79,5 +81,13 @@ public class StoredChunkInfo implements Serializable {
 
     public SocketAddress getInitiatorPeer() {
         return initiatorPeer;
+    }
+
+	public boolean pendingDeletion() {
+		return this.pendingDeletion;
+    }
+    
+    public void setPendingDeletion(boolean isPending){
+        this.pendingDeletion = isPending;
     }
 }

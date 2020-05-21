@@ -1,5 +1,7 @@
 package com.feup.sdis.actions;
 
+import java.util.concurrent.Future;
+
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.Status;
@@ -16,7 +18,6 @@ import com.feup.sdis.peer.MessageListener;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class Delete extends Action {
     private final String fileID;
@@ -61,14 +62,15 @@ public class Delete extends Action {
         return "Successfully requested file deletion";
     }
 
-    public static void deleteChunk(int chunkNumber, int replNo, String fileID) {
+    public static Future<Boolean> deleteChunk(int chunkNumber, int replNo, String fileID) {
 
         Callable<Boolean> r = () -> {
             final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNumber);
 
             final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replNo);
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
-            System.out.println("Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
+            System.out.println(
+                    "Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
             final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
 
             if (deleteResponse == null) {
@@ -89,18 +91,18 @@ public class Delete extends Action {
                     System.out.println("Connection error for chunk " + chunkID + ", replNo=" + replNo);
                     break;
                 default:
-                    System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo +
-                            ", got error " + deleteResponse.getStatus());
+                    System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo + ", got error "
+                            + deleteResponse.getStatus());
             }
 
             System.out.println("Adding request " + deleteRequest.toString() + " to retry queue");
             return false;
         };
 
-        sendRequest(r);
+        return sendRequest(r);
     }
 
-    private static void sendRequest(Callable<Boolean> r) {
+    private static Future<Boolean> sendRequest(Callable<Boolean> r) {
         Future<Boolean> receivedAnswer = BSDispatcher.servicePool.submit(r);
         BSDispatcher.servicePool.execute(() -> {
             try {
@@ -113,5 +115,6 @@ public class Delete extends Action {
                 e.printStackTrace();
             }
         });
+        return receivedAnswer;
     }
 }

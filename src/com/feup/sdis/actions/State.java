@@ -1,7 +1,6 @@
 package com.feup.sdis.actions;
 
 import com.feup.sdis.chord.Chord;
-import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.model.*;
 import com.feup.sdis.peer.Constants;
 import com.feup.sdis.peer.Peer;

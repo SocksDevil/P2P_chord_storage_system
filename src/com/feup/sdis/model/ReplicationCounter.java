@@ -2,7 +2,6 @@ package com.feup.sdis.model;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.feup.sdis.chord.SocketAddress;
@@ -80,6 +79,14 @@ public class ReplicationCounter extends SerializableHashMap<Map<Integer,PeerInfo
 
     public synchronized PeerInfo getPeerAddress(String key, Integer repDegree){
         return this.getOrDefault(key, new HashMap<>()).get(repDegree);
+    }
+
+    public synchronized Integer getRepDegree(String key, SocketAddress peerId){
+        Map<Integer,PeerInfo> peers = this.getOrDefault(key, new HashMap<>());
+        for (Map.Entry<Integer, PeerInfo> entry : peers.entrySet())
+            if (peerId.equals(entry.getValue().getAddress()))
+                return entry.getKey();
+        return null;
     }
 
     @Override
