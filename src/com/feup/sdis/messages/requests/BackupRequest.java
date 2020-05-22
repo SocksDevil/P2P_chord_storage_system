@@ -45,7 +45,6 @@ public class BackupRequest extends Request {
         if(!Store.instance().getStoredFiles().containsKey(newChunk.getChunkID()))
             return new BackupResponse(Status.FILE_NOT_FOUND);
         Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);
-        System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 
         try {
             newChunk.storeFile(chunkData);

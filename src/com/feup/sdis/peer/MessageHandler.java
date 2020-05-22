@@ -1,14 +1,12 @@
 package com.feup.sdis.peer;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.chord.SocketAddress;
@@ -21,17 +19,17 @@ public class MessageHandler {
     private static AsynchronousServerSocketChannel serverSocket;
     private static AsynchronousChannelGroup group;
     private static int port;
+    private static int TERMINATION_TIMEOUT = 5;
 
     public MessageHandler(int port) {
 
         MessageHandler.port = port;
     }
 
-    public static void shutdown(){
-        group.shutdown();
-        pool.shutdown();
+    public static void shutdown() {
         try {
-            serverSocket.close();
+            group.shutdownNow();
+            pool.shutdownNow();
         } catch (IOException e) {
             System.out.println("An unexpected error while closing the server socket.");
         }
@@ -55,9 +53,9 @@ public class MessageHandler {
                     if (serverSocket.isOpen())
                         serverSocket.accept(null, this);
 
-                    if(socket != null && socket.isOpen()){
+                    if (socket != null && socket.isOpen()) {
                         Request request = SerializationUtils.deserialize(socket);
-                        if (request == null){
+                        if (request == null) {
                             System.out.println("* Request is null.");
                             return;
                         }
@@ -71,7 +69,7 @@ public class MessageHandler {
                             socket.close();
                         } catch (IOException e) {
                             // if(DEBUG_MODE )
-                                System.out.println("* Socket shutdown/close failed on MessageListener.");
+                            System.out.println("* Socket shutdown/close failed on MessageListener.");
                         }
                     }
                 }
@@ -79,7 +77,7 @@ public class MessageHandler {
                 @Override
                 public void failed(Throwable throwable, Object att) {
                     // if(DEBUG_MODE )
-                        System.out.println("* Socket accept failed on MessageListener.");
+                    System.out.println("* Socket accept failed on MessageListener.");
                 }
             });
             try {
@@ -93,7 +91,7 @@ public class MessageHandler {
     public static <T extends Response> T sendMessage(Request request, SocketAddress destination) {
         try {
 
-            if(destination == null)
+            if (destination == null)
                 return null;
             AsynchronousSocketChannel socket = AsynchronousSocketChannel.open();
             Future<Void> future = socket.connect(new InetSocketAddress(destination.getIp(), destination.getPort()));
@@ -116,15 +114,13 @@ public class MessageHandler {
 
             return receivedMessage;
         } catch (IOException ex) {
-            if(DEBUG_MODE )
+            if (DEBUG_MODE)
                 System.out.println("* IOException on sendMessage.");
-        }
-        catch(ExecutionException ex){
-            if(DEBUG_MODE )
+        } catch (ExecutionException ex) {
+            if (DEBUG_MODE)
                 System.out.println("* ExecutionException on sendMessage.");
-        }
-        catch(InterruptedException ex){
-            if(DEBUG_MODE)
+        } catch (InterruptedException ex) {
+            if (DEBUG_MODE)
                 System.out.println("* InterruptedException on sendMessage.");
         }
 
