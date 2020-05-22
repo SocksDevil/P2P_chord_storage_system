@@ -2,6 +2,7 @@ package com.feup.sdis.peer;
 
 import com.feup.sdis.actions.BSDispatcher;
 import com.feup.sdis.actions.Dispatcher;
+import com.feup.sdis.actions.ShutdownHandler;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.model.Store;
