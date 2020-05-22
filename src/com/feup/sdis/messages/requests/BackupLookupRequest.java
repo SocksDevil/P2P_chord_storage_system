@@ -8,7 +8,7 @@ import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 
 public class BackupLookupRequest extends Request {
@@ -17,7 +17,6 @@ public class BackupLookupRequest extends Request {
     private int currReplication;
     private int chunkLength;
     private SocketAddress connection;
-    // TODO: ver se há maneira + limpa de fazer isto
     private boolean redirected;
 
     public BackupLookupRequest(String fileID, int chunkNo, int currReplication, SocketAddress connection, int chunkLength, boolean redirected) {
@@ -46,7 +45,6 @@ public class BackupLookupRequest extends Request {
             }
         }
 
-        // TODO: make sure that if -> 1 || 2 if 1 is True; 2 is NOT evaluated
         if(Store.instance().getBackedUpFiles().containsKey(fileID) || isStored || !Store.instance().incrementSpace(this.chunkLength)){
 
             // Remove placeholder if no space for chunk
@@ -60,7 +58,6 @@ public class BackupLookupRequest extends Request {
                 System.out.println("> BACKUP LOOKUP: Failed " + this.currReplication + " of file " + chunkID);
 
                 Store.instance().getReplCount().removeRepDegree(chunkID, this.currReplication);
-                // TODO: ver depois se não era fixe, se já deu a volta ir de imediato para o inicial.
                 return new BackupLookupResponse(Status.NO_SPACE, Peer.addressInfo);
             }
             System.out.println("> BACKUP LOOKUP: Redirect to " + Chord.chordInstance.getSuccessor() + " - " + chunkID + " rep " + currReplication);
@@ -81,7 +78,7 @@ public class BackupLookupRequest extends Request {
     public static BackupLookupResponse backupChunkInSuccessor(String chunkID, String fileID, int chunkNo, int currReplication, int chunkLength, boolean redirected) {
         // Get successor
         final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, currReplication, Chord.chordInstance.getSuccessor(), chunkLength, true);
-        final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+        final BackupLookupResponse lookupRequestAnswer = MessageHandler.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         // This should never happen
         if(lookupRequestAnswer == null ){

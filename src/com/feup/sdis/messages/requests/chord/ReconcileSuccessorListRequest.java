@@ -17,7 +17,6 @@ public class ReconcileSuccessorListRequest extends Request {
 
     @Override
     public SocketAddress getConnection() {
-        // TODO Auto-generated method stub
         return null;
     }
     

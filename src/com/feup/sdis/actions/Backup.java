@@ -109,7 +109,7 @@ public class Backup extends Action {
             e1.printStackTrace();
         }
 
-        // Generate UUID for file: filename + lastmodified + ownername TODO: change
+        // Generate UUID for file: filename + lastmodified + ownername
         // this, maybe include file hash
         String metaFileName = file.getName() + String.valueOf(file.lastModified()) + ownerName;
         String fileID = UUID.nameUUIDFromBytes(metaFileName.getBytes()).toString();

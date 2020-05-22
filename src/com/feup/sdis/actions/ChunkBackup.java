@@ -8,7 +8,7 @@ import com.feup.sdis.messages.requests.BackupLookupRequest;
 import com.feup.sdis.messages.responses.BackupResponse;
 import com.feup.sdis.messages.responses.BackupLookupResponse;
 import com.feup.sdis.model.StoredChunkInfo;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 import java.util.concurrent.Callable;
 
@@ -39,17 +39,17 @@ public class ChunkBackup extends Action implements Callable<String> {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
         final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
         final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
-        final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
+        final BackupLookupResponse lookupRequestAnswer = MessageHandler.sendMessage(lookupRequest, lookupRequest.getConnection());
 
         if(lookupRequestAnswer == null || lookupRequestAnswer.getStatus() != Status.SUCCESS) {
-            return "Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID;
-            // TODO: ver return
+            return "Failed to lookup peer for " + chunkNo + " of file " + fileID + " with rep " + repID + (lookupRequestAnswer == null ? "" :
+                    " with status " + lookupRequestAnswer.getStatus());
         }
 
         final BackupRequest backupRequest = new BackupRequest(this.fileID, chunkNo, this.replDegree, this.chunkData,
                 lookupRequestAnswer.getAddress(), nChunks, originalFilename, Peer.addressInfo);
 
-        final BackupResponse backupRequestAnswer = MessageListener.sendMessage(backupRequest, backupRequest.getConnection());
+        final BackupResponse backupRequestAnswer = MessageHandler.sendMessage(backupRequest, backupRequest.getConnection());
         if (backupRequestAnswer != null && backupRequestAnswer.getStatus() == Status.SUCCESS) {
             System.out.println("Successfully stored chunk " + chunkNo + " with rep " + repID + " in " + lookupRequestAnswer.getAddress());
         }

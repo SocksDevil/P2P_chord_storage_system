@@ -14,7 +14,7 @@ import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.messages.requests.Request;
 
-public class MessageListener {
+public class MessageHandler {
 
     private static final boolean DEBUG_MODE = false;
     private static final ExecutorService pool = Executors.newCachedThreadPool();
@@ -22,9 +22,9 @@ public class MessageListener {
     private static AsynchronousChannelGroup group;
     private static int port;
 
-    public MessageListener(int port) {
+    public MessageHandler(int port) {
 
-        MessageListener.port = port;
+        MessageHandler.port = port;
     }
 
     public static void shutdown(){
@@ -41,7 +41,7 @@ public class MessageListener {
 
         try {
             group = AsynchronousChannelGroup.withCachedThreadPool(pool, 1);
-            serverSocket = AsynchronousServerSocketChannel.open();
+            serverSocket = AsynchronousServerSocketChannel.open(group);
             serverSocket.bind(new InetSocketAddress(port));
         } catch (IOException e) {
             System.out.println("Failed to initialize server on port " + port);
