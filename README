@@ -1,0 +1,14 @@
+To compile this project, you must execute the compile.sh script present in this directory.
+Afterwards, you are able to run the Peer using the command "java -cp build com.feup.sdis.peer.Peer <hostPort> <peerID> <peerAp> [chordBoostrappingAddress]"
+where the arguments mean the following:
+- <hostPort> - Port where the backup service will operate;
+- <peerID> - ID of the peer (must be unique);
+- <peerAp> - Is the peer’s access point in RMI registry;
+- [chordBoostrappingAddress] - Address ( in the format IP:port) of the peer that is used for bootstrapping the chord. These argument is only needed when a peer is joining an existing chord ring.
+
+You are also able to run the TestApp, the RMI interface to interact with the Peer using the command "java -cp build com.feup.sdis.TestApp <hostname[:port]> <peerAp> <operation> [opnd]*"
+where the arguments mean the following:
+- <hostname[:port]> - Location (IP and port) of the RMI registry;
+- <peerAp> - Is the peer’s access point in RMI registry;
+- <operation> - Is the operation the peer must execute. It can either trigger a subprotocol, SHUTDOWN a peer or retrieve its state with the STATE argument;
+- [opnd] - operands of the specific protocol, specified in the the corresponding subchapter.

@@ -32,7 +32,6 @@ public class BackupLookupRequest extends Request {
     public Response handle() {
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
 
-        // System.out.println("Space " + Store.instance().getUsedDiskSpace() + " - " + this.chunkLength + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
         // If it already has this chunk || doesn't have enough space ->
         boolean isStored = true;
         synchronized(Store.instance().getStoredFiles()){
