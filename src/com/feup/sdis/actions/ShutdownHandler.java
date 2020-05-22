@@ -3,7 +3,7 @@ package com.feup.sdis.actions;
 import java.io.File;
 import com.feup.sdis.chord.Chord;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 
 public class ShutdownHandler {
@@ -20,7 +20,7 @@ public class ShutdownHandler {
         System.out.println("> SHUTDOWN: Stopped chord periodic threads.");
 
         // Shutdown message receiving
-        MessageListener.shutdown();
+        MessageHandler.shutdown();
         Peer.messageReceiver.interrupt();
         System.out.println("> SHUTDOWN: Stopped message listener.");
 

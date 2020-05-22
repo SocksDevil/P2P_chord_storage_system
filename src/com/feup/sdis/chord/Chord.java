@@ -31,7 +31,7 @@ public class Chord {
     private static final BigInteger B = BigInteger.ONE.shiftLeft(64); // 2^64
     private static final BigInteger L = BigInteger.valueOf(Long.MAX_VALUE);
     private static final boolean DEBUG_MODE = true;
-    private static final int FINGER_TABLE_SIZE = 128;
+    private static final int FINGER_TABLE_SIZE = 8;
     private static final int FIX_FINGERS_INTERVAL_MS = 500;
     private static final int STABILIZE_INTERVAL_MS = 500;
     private static final int CHECK_PREDECESSOR_INTERVAL_MS = 500;
@@ -140,7 +140,7 @@ public class Chord {
         while (true) {
             SocketAddress cpn = this.closestPrecedingNode(key);
 
-            if(cpn == self.get())
+            if(cpn.equals(self.get()))
                 break;
 
             FindSuccessorResponse res = MessageHandler.sendMessage(new FindSuccessorRequest(key), cpn);
