@@ -21,7 +21,6 @@ public class ChunkBackup extends Action implements Callable<String> {
     private final int nChunks;
     private final int replDegree;
     private final String originalFilename;
-    private SocketAddress destinationOverride;
 
     public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData, int nChunks, int replDegree, String originalFilename) {
 
@@ -32,20 +31,13 @@ public class ChunkBackup extends Action implements Callable<String> {
         this.nChunks = nChunks;
         this.replDegree = replDegree;
         this.originalFilename = originalFilename;
-        this.destinationOverride = null; /* Destination override is meant to overule chords TODO: don't forget to remove this if I end up not using it*/
-    }
-
-    public ChunkBackup(String fileID, int chunkNo, int repID, byte[] chunkData, int nChunks, int replDegree, String originalFilename, SocketAddress destinationOverride) {
-
-        this(fileID, chunkNo, repID, chunkData, nChunks, replDegree, originalFilename);
-        this.destinationOverride = destinationOverride;
     }
 
     @Override
     String process() {
 
         final String chunkID = StoredChunkInfo.getChunkID(fileID, chunkNo);
-        final SocketAddress addressInfo = this.destinationOverride == null ? Chord.chordInstance.lookup(chunkID, repID) : this.destinationOverride ;
+        final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, repID);
         final BackupLookupRequest lookupRequest = new BackupLookupRequest(fileID, chunkNo, repID, addressInfo, this.chunkData.length, false);
         final BackupLookupResponse lookupRequestAnswer = MessageListener.sendMessage(lookupRequest, lookupRequest.getConnection());
 

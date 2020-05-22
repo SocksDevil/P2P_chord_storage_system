@@ -14,8 +14,12 @@ import com.feup.sdis.peer.Constants;
 public class Reclaim extends Action {
     private final int finalSpace;
 
+    public Reclaim (int finalSpace){
+        this.finalSpace = finalSpace;
+    }
+
     public Reclaim(String[] args) {
-        finalSpace = Integer.parseInt(args[1]);
+        this(Integer.parseInt(args[1]));
     }
 
     @Override
