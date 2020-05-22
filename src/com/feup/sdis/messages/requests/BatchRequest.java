@@ -24,15 +24,12 @@ public class BatchRequest extends Request {
 
             responses[i] = this.requests[i].handle();
 
-            // TODO may not be the best option (opposite of success may not be error ??)
             if(responses[i].getStatus() != Status.SUCCESS)
                 stat = Status.ERROR;
         }
 
-        
-        Response res = new BatchResponse(stat,responses);
 
-        return res;
+        return new BatchResponse(stat,responses);
     }
 
     @Override

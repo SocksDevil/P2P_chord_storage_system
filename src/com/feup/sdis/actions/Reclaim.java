@@ -19,7 +19,6 @@ public class Reclaim extends Action {
     @Override
     public String process() {
         // Set new peer space
-        // TODO: maybe synchronize this?? (because of the increment space function)
         Constants.MAX_OCCUPIED_DISK_SPACE_MB = finalSpace * Constants.MEGABYTE;
 
         while (Store.instance().getUsedDiskSpace() > Constants.MAX_OCCUPIED_DISK_SPACE_MB) {
@@ -44,8 +43,8 @@ public class Reclaim extends Action {
             try {
                 chunkData = chunkInfo.getBody();
             } catch (IOException e2) {
-                // TODO Auto-generated catch block - think about it pharrell
-                e2.printStackTrace();
+                System.out.println("Failed to get chunk body!");
+                return;
             }
             System.out.println("> RECLAIM: Delete chunk " + chunkID + " rep " + currRepDegree + " and redirects");
             Future<Boolean> deleteCall = Delete.deleteChunk(chunkInfo.getChunkNo(), currRepDegree, chunkInfo.getFileID());
@@ -57,8 +56,7 @@ public class Reclaim extends Action {
                                                         currRepDegree, chunkData, chunkInfo.getnChunks(),
                                                         chunkInfo.getDesiredReplicationDegree(), chunkInfo.getOriginalFilename()));
             } catch (InterruptedException | ExecutionException e1) {
-                // TODO Auto-generated catch block delete call failed
-                e1.printStackTrace();
+                System.out.println("Failed to delete chunk!");
             }
         });
     }

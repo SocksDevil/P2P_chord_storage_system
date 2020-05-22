@@ -6,6 +6,7 @@ import com.feup.sdis.chord.Chord;
 import com.feup.sdis.chord.SocketAddress;
 import com.feup.sdis.model.Store;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
@@ -21,21 +22,18 @@ import java.util.concurrent.TimeUnit;
 
 public class Peer {
 
-    // TODO: ver isto meu puto
     public static SocketAddress addressInfo;
     public static Thread messageReceiver;
 
     /**
      * Peer hostAddress peerID accessPoint [chordEntryAddress]
-     * 
      */
     public static void main(String[] args) {
 
-        // // TODO fix argument count because of optional arguments
-        // if (args.length != 5) {
-        // System.out.println("Invalid number of arguments");
-        // return;
-        // }
+        if (args.length < 4 || args.length > 5) {
+            System.out.println("Invalid number of arguments");
+            return;
+        }
 
         String peerPort = args[0];
         String peerID = args[1];
@@ -55,16 +53,11 @@ public class Peer {
         Constants.peerRootFolder = Constants.peerParentFolder + "peer-" + peerID + "/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";
-        Server.createPeerFolders();
+        createPeerFolders();
 
-        // TODO: com argumentos
         try {
             addressInfo = new SocketAddress(InetAddress.getLocalHost().getHostAddress(), port, peerID);
-        } catch (NumberFormatException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (UnknownHostException e1) {
-            // TODO Auto-generated catch block
+        } catch (NumberFormatException | UnknownHostException e1) {
             e1.printStackTrace();
         }
 
@@ -85,20 +78,8 @@ public class Peer {
             e.printStackTrace();
         }
 
-        // TODO: move this to a proper place:
 
-        messageReceiver = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                // TODO: port number está hardcoded
-                MessageListener messageListener = new MessageListener(port);
-                messageListener.receive();
-            }
-        });
-
-        messageReceiver.start();
+        startMessageReceiver(port);
 
         if (args.length == 5) {
 
@@ -123,9 +104,7 @@ public class Peer {
             try {
                 Chord.chordInstance = new Chord(addressInfo, ringBoostrapping);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-
+                System.out.println(e.getMessage());
                 return;
             }
         } else {
@@ -143,5 +122,28 @@ public class Peer {
             periodicExecutor.shutdown();
             ShutdownHandler.execute();
         }));
+    }
+
+    private static void startMessageReceiver(int port) {
+        messageReceiver = new Thread(() -> {
+            MessageHandler messageListener = new MessageHandler(port);
+            messageListener.receive();
+        });
+        messageReceiver.start();
+    }
+
+    public static void createPeerFolders() {
+        if (!(new File(Constants.peerParentFolder)).mkdir()) {
+            System.out.println("Folder already exists or failed to be created: " + Constants.peerParentFolder);
+        }
+        if (!(new File(Constants.peerRootFolder)).mkdir()) {
+            System.out.println("Folder already exists or failed to be created: " + Constants.peerRootFolder);
+        }
+        if (!(new File(Constants.backupFolder)).mkdir()) {
+            System.out.println("Folder already exists or failed to be created: " + Constants.backupFolder);
+        }
+        if (!(new File(Constants.restoredFolder)).mkdir()) {
+            System.out.println("Folder already exists or failed to be created: " + Constants.restoredFolder);
+        }
     }
 }
