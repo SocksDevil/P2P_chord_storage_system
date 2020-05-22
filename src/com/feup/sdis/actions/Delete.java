@@ -14,7 +14,7 @@ import com.feup.sdis.model.RequestRetryInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -42,7 +42,7 @@ public class Delete extends Action {
         Callable<Boolean> deleteFileInfoReq = () -> {
             final SocketAddress backupInitiatorPeer = response.getInitiatorPeer();
             final DeleteFileInfo req = new DeleteFileInfo(fileID);
-            final DeleteFileInfoResponse res = MessageListener.sendMessage(req, backupInitiatorPeer);
+            final DeleteFileInfoResponse res = MessageHandler.sendMessage(req, backupInitiatorPeer);
 
             if (res == null) {
                 System.out.println("Error removing file " + fileID + " from initiator peer " + backupInitiatorPeer);
@@ -71,7 +71,7 @@ public class Delete extends Action {
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNumber, replNo);
             System.out.println(
                     "Requesting DELETE (" + fileID + "," + chunkNumber + "," + replNo + ") to peer " + addressInfo);
-            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, addressInfo);
+            final DeleteResponse deleteResponse = MessageHandler.sendMessage(deleteRequest, addressInfo);
 
             if (deleteResponse == null) {
                 System.out.println("Could not read DELETE response for chunk " + chunkNumber + ", added to retry queue");
@@ -90,6 +90,9 @@ public class Delete extends Action {
                 case CONNECTION_ERROR:
                     System.out.println("Connection error for chunk " + chunkID + ", replNo=" + replNo);
                     break;
+                case FILE_NOT_DELETED:
+                    System.out.println("Could not delete chunk " + chunkID + ", replNo=" + replNo);
+                    return true;
                 default:
                     System.out.println("Could not delete chunk " + chunkNumber + " from " + addressInfo + ", got error "
                             + deleteResponse.getStatus());

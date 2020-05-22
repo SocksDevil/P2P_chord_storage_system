@@ -46,7 +46,8 @@ public class TransferChunksRequest extends Request {
         return Chord.chordInstance.betweenTwoKeys(peerPredecessor, peerKey,
                 Chord.chordInstance.generateKey(storedChunk.getKey(),
                         addressEntry.getKey()),
-                false, true) && addressEntry.getValue().getAddress().equals(Peer.addressInfo);
+                false, true) && addressEntry.getValue().getAddress().equals(Peer.addressInfo)
+                && !Peer.addressInfo.getPeerID().equals(peerPredecessor);
     }
 
     @Override

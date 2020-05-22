@@ -7,7 +7,7 @@ import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 
 public class ChunkLookupRequest extends Request {
@@ -44,7 +44,7 @@ public class ChunkLookupRequest extends Request {
             System.out.println("> CHUNK LOOKUP: Redirect to " + redirectAddress + " - " + chunkID + " rep " + replNo);
 
             final ChunkLookupRequest lookupRedirect = new ChunkLookupRequest(fileID, chunkNo, replNo, redirectAddress);
-            final ChunkLookupResponse redirectAnswer = MessageListener.sendMessage(lookupRedirect, redirectAddress);
+            final ChunkLookupResponse redirectAnswer = MessageHandler.sendMessage(lookupRedirect, redirectAddress);
 
             if (redirectAnswer == null || redirectAnswer.getAddress() == null) {
                 System.err.println("> CHUNK LOOKUP: Received null when searching for chunk " + chunkNo + " of file " + fileID + " in peer " + Peer.addressInfo);
