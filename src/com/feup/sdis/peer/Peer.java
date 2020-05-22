@@ -50,7 +50,7 @@ public class Peer {
 
         Constants.peerID = peerID;
         Constants.SENDER_ID = peerID;
-        Constants.MAX_OCCUPIED_DISK_SPACE_MB = Integer.parseInt(args[3]) * Constants.MEGABYTE;
+        Constants.MAX_OCCUPIED_DISK_SPACE = Integer.parseInt(args[3]) * Constants.MEGABYTE;
         Constants.peerRootFolder = Constants.peerParentFolder + "peer-" + peerID + "/";
         Constants.backupFolder = Constants.peerRootFolder + "backups/";
         Constants.restoredFolder = Constants.peerRootFolder + "restored/";

@@ -12,24 +12,24 @@ import com.feup.sdis.peer.Peer;
 import com.feup.sdis.peer.Constants;
 
 public class Reclaim extends Action {
-    private final int finalSpace;
+    private final float finalSpace;
 
-    public Reclaim (int finalSpace){
+    public Reclaim (float finalSpace){
         this.finalSpace = finalSpace;
     }
 
     public Reclaim(String[] args) {
-        this(Integer.parseInt(args[1]));
+        this(Float.parseFloat(args[1]));
     }
 
     @Override
     public String process() {
         // Set new peer space
-        Constants.MAX_OCCUPIED_DISK_SPACE_MB = finalSpace * Constants.MEGABYTE;
+        Constants.MAX_OCCUPIED_DISK_SPACE = (int) finalSpace * Constants.MEGABYTE;
         List<Future<?>> returnCodes = new LinkedList<>();
-        while (Store.instance().getUsedDiskSpace() > Constants.MAX_OCCUPIED_DISK_SPACE_MB) {
+        while (Store.instance().getUsedDiskSpace() > Constants.MAX_OCCUPIED_DISK_SPACE) {
             System.out.println("> RECLAIM: Space " + Store.instance().getUsedDiskSpace() + "/"
-                    + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
+                    + Constants.MAX_OCCUPIED_DISK_SPACE);
 
             StoredChunkInfo chunkInfo = Store.instance().getChunkCandidate();
             Store.instance().decrementSpace(chunkInfo.getChunkSize());

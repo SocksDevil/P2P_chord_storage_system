@@ -60,7 +60,7 @@ public class Store {
 
     public synchronized boolean incrementSpace(int length) {
 
-        if(this.usedSpace + length <= Constants.MAX_OCCUPIED_DISK_SPACE_MB){
+        if(this.usedSpace + length <= Constants.MAX_OCCUPIED_DISK_SPACE){
             this.usedSpace += length;
             return true;
         }

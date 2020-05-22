@@ -37,6 +37,8 @@ public class Backup extends Action {
 
         try {
             this.file = this.readFile();
+            if(this.file == null)
+                return "Peer has already stored this file.";
             Store.instance().getBackedUpFiles().put(this.file.getfileID(), this.file);
 
         } catch (InvalidAttributeValueException | IOException e) {
@@ -113,6 +115,10 @@ public class Backup extends Action {
         // this, maybe include file hash
         String metaFileName = file.getName() + String.valueOf(file.lastModified()) + ownerName;
         String fileID = UUID.nameUUIDFromBytes(metaFileName.getBytes()).toString();
+        if(Store.instance().getBackedUpFiles().containsKey(fileID)){
+            System.out.println("File has already been stored in this peer");
+            return null;
+        }
 
         // Split chunks
         int nChunks = this.splitChunks(file);

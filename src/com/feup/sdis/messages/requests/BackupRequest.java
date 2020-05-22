@@ -30,7 +30,6 @@ public class BackupRequest extends Request {
         this.connection = connection;
         this.desiredRepDegree = desiredRepDegree;
         this.chunkData = data;
-        // this.repDegree = Integer.parseInt(args[2]);
         this.nChunks = nChunks;
         this.originalFilename = originalFilename;
         this.initiatorPeer = initiatorPeer;
