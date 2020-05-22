@@ -12,7 +12,7 @@ import com.feup.sdis.messages.responses.ChunkResponse;
 import com.feup.sdis.model.RestoredFileInfo;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 
 import java.io.ByteArrayOutputStream;
@@ -75,7 +75,7 @@ public class Restore extends Action {
             // find peer that has chunk
             final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replicator); // get assigned peer
             ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNo, replicator, Peer.addressInfo); // resolve redirects
-            ChunkLookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+            ChunkLookupResponse lookupResponse = MessageHandler.sendMessage(lookupRequest, addressInfo);
 
             if (lookupResponse == null) {
                 System.out.println("Could not read response for ChunkLookupRequest on chunk " + chunkID);
@@ -87,7 +87,7 @@ public class Restore extends Action {
             }
 
             GetChunkRequest getChunkRequest = new GetChunkRequest(fileID, chunkNo);
-            ChunkResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
+            ChunkResponse chunkResponse = MessageHandler.sendMessage(getChunkRequest, lookupResponse.getAddress());
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);
@@ -110,7 +110,7 @@ public class Restore extends Action {
             // find peer that has chunk
             final SocketAddress addressInfo = Chord.chordInstance.lookup(chunkID, replicator); // get assigned peer
             final ChunkLookupRequest lookupRequest = new ChunkLookupRequest(fileID, chunkNo, replicator, Peer.addressInfo); // resolve redirects
-            final ChunkLookupResponse lookupResponse = MessageListener.sendMessage(lookupRequest, addressInfo);
+            final ChunkLookupResponse lookupResponse = MessageHandler.sendMessage(lookupRequest, addressInfo);
 
             if (lookupResponse == null) {
                 System.out.println("Could not read response for ChunkLookupRequest on chunk " + chunkID);
@@ -122,7 +122,7 @@ public class Restore extends Action {
             }
 
             final GetChunkInfoRequest getChunkRequest = new GetChunkInfoRequest(fileID, chunkNo);
-            final ChunkInfoResponse chunkResponse = MessageListener.sendMessage(getChunkRequest, lookupResponse.getAddress());
+            final ChunkInfoResponse chunkResponse = MessageHandler.sendMessage(getChunkRequest, lookupResponse.getAddress());
 
             if (chunkResponse == null) {
                 System.out.println("Could not read response for chunk " + chunkNo);

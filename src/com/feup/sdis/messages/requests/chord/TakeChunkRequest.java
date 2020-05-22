@@ -55,10 +55,9 @@ public class TakeChunkRequest extends DeleteRequest {
                 returnStatus = Status.ERROR;
             }
 
-            // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
             if (!fileToDelete.delete()) {
                 System.out.println("> DELETE: Failed to delete chunk " + chunkID);
-                returnStatus = Status.ERROR;
+                returnStatus = Status.FILE_NOT_DELETED;
             }
 
             return new TakeChunkResponse(returnStatus, fileID, chunkNo, chunkInfo.getDesiredReplicationDegree(), replNo, data, nChunks, originalFileName, initiatorPeer);

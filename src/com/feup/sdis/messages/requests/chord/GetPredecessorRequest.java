@@ -8,18 +8,11 @@ import com.feup.sdis.messages.responses.Response;
 import com.feup.sdis.messages.responses.chord.GetPredecessorResponse;
 
 
-public class GetPredecessorRequest extends Request{
-
-    private SocketAddress addressInfo;
-
-    public GetPredecessorRequest(){
-
-        this.addressInfo = null; // TODO: Useless??
-    }
+public class GetPredecessorRequest extends Request {
 
     @Override
     public Response handle() {
-        
+
         SocketAddress succ = Chord.chordInstance.getPredecessor();
 
         return new GetPredecessorResponse(Status.SUCCESS, succ);
@@ -27,13 +20,13 @@ public class GetPredecessorRequest extends Request{
 
     @Override
     public SocketAddress getConnection() {
-        
-        return addressInfo;
+
+        return null;
     }
 
     @Override
-    public String toString(){
-        
+    public String toString() {
+
         return "req: CHD_GET_PRED ";
     }
 }

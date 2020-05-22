@@ -54,10 +54,9 @@ public class State extends Action {
 
         message += Chord.chordInstance.state();
 
-        // TODO: Change this according to the model used for the disk space
-/*        int maxDiskSpace = Store.instance().getMaxDiskSpace();
-        message += "Disk space limit: " + (maxDiskSpace == Constants.unlimitedDiskSpace ? "NOT LIMITED" : maxDiskSpace/1000 + " KBytes") + "\n";
-        message += "Used disk space: " + Store.instance().getUsedDiskSpace()/1000 + " KBytes\n"; */
+        int maxDiskSpace = Constants.MAX_OCCUPIED_DISK_SPACE_MB;
+        message += "Disk space limit: " + (maxDiskSpace/1000 + " KBytes") + "\n";
+        message += "Used disk space: " + Store.instance().getUsedDiskSpace()/1000 + " KBytes\n";
         return message;
     }
 }

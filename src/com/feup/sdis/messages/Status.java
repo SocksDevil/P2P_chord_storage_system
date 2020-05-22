@@ -6,5 +6,6 @@ public enum Status {
     NO_SPACE,
     ERROR,
     UNCHANGED,
-    CONNECTION_ERROR
+    CONNECTION_ERROR,
+    FILE_NOT_DELETED
 }

@@ -19,8 +19,7 @@ public class BackupRequest extends Request {
     private final int nChunks;
     private final String originalFilename;
     private final SocketAddress initiatorPeer;
-
-    private byte[] chunkData;
+    private final byte[] chunkData;
 
     public BackupRequest(String fileID, int chunkNo, int desiredRepDegree,
                          byte[] data, SocketAddress connection, int nChunks,
@@ -44,16 +43,14 @@ public class BackupRequest extends Request {
                 chunkData.length, nChunks, originalFilename, initiatorPeer);
         // If placeholder is not there, file deleted -> don't save
         if(!Store.instance().getStoredFiles().containsKey(newChunk.getChunkID()))
-            // TODO: mudar para Status.FILE_DELETED or smt
-            return new BackupResponse(Status.ERROR);
+            return new BackupResponse(Status.FILE_NOT_FOUND);
         Store.instance().getStoredFiles().put(newChunk.getChunkID(), newChunk);
         System.out.println("Stored " + Store.instance().getUsedDiskSpace() + " - " + this.chunkData.length + " - " + Constants.MAX_OCCUPIED_DISK_SPACE_MB);
 
         try {
             newChunk.storeFile(chunkData);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("Error storing chunk");
            return new BackupResponse(Status.ERROR);
         }
 
@@ -62,7 +59,6 @@ public class BackupRequest extends Request {
 
     @Override
     public SocketAddress getConnection() {
-        // TODO Auto-generated method stub
         return this.connection;
     }
 

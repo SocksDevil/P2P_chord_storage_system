@@ -26,7 +26,7 @@ public class ShutdownHandler {
         System.out.println("> SHUTDOWN: Stopped chord periodic threads.");
 
         // Shutdown message receiving
-        MessageListener.shutdown();
+        MessageHandler.shutdown();
         Peer.messageReceiver.interrupt();
         System.out.println("> SHUTDOWN: Stopped message listener.");
 

@@ -12,13 +12,11 @@ import com.feup.sdis.messages.responses.chord.FindSuccessorResponse;
 
 
 public class FindSuccessorRequest extends Request{
-    private UUID key;
-    private SocketAddress addressInfo;
+    private final UUID key;
 
     public FindSuccessorRequest(UUID key){
 
         this.key = key;
-        this.addressInfo = null; // TODO: Useless??
     }
 
     @Override
@@ -32,7 +30,7 @@ public class FindSuccessorRequest extends Request{
     @Override
     public SocketAddress getConnection() {
         
-        return addressInfo;
+        return null;
     }
 
     @Override

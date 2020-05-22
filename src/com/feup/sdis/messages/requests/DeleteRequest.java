@@ -9,7 +9,7 @@ import com.feup.sdis.model.PeerInfo;
 import com.feup.sdis.model.Store;
 import com.feup.sdis.model.StoredChunkInfo;
 import com.feup.sdis.peer.Constants;
-import com.feup.sdis.peer.MessageListener;
+import com.feup.sdis.peer.MessageHandler;
 import com.feup.sdis.peer.Peer;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class DeleteRequest extends Request {
             System.out.println("> DELETE: Redirect to " + chunkOwner + " - " + chunkID + " rep " + replNo);
 
             final DeleteRequest deleteRequest = new DeleteRequest(fileID, chunkNo, replNo);
-            final DeleteResponse deleteResponse = MessageListener.sendMessage(deleteRequest, Chord.chordInstance.getSuccessor());
+            final DeleteResponse deleteResponse = MessageHandler.sendMessage(deleteRequest, Chord.chordInstance.getSuccessor());
 
             if (deleteResponse == null) {
                 System.out.println("> DELETE: Received null for chunk " + chunkID + ", replNo=" + replNo);
@@ -84,10 +84,9 @@ public class DeleteRequest extends Request {
             System.out.println("> DELETE: Could not find chunk " + chunkID + " on disk");
             returnStatus = Status.FILE_NOT_FOUND;
         }
-        // TODO: ver se este for o erro se não convinha por as cenas nas dbs de novo
         else if (!fileToDelete.delete()) {
             System.out.println("> DELETE: Failed to delete chunk " + chunkID);
-            returnStatus = Status.ERROR;
+            returnStatus = Status.FILE_NOT_DELETED;
         }
 
         return new DeleteResponse(returnStatus, fileID, chunkNo, replNo);
